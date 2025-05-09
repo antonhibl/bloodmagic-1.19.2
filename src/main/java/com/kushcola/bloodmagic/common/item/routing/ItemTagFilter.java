@@ -17,8 +17,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -48,7 +46,7 @@ public class ItemTagFilter extends ItemRouterFilter implements INestableItemFilt
 	@OnlyIn(Dist.CLIENT)
 	public void appendHoverText(ItemStack filterStack, Level world, List<Component> tooltip, TooltipFlag flag)
 	{
-		tooltip.add(new TranslatableComponent("tooltip.bloodmagic.tagfilter.desc").withStyle(ChatFormatting.ITALIC).withStyle(ChatFormatting.GRAY));
+		tooltip.add(Component.translatable("tooltip.bloodmagic.tagfilter.desc").withStyle(ChatFormatting.ITALIC).withStyle(ChatFormatting.GRAY));
 
 		if (filterStack.getTag() == null)
 		{
@@ -60,10 +58,10 @@ public class ItemTagFilter extends ItemRouterFilter implements INestableItemFilt
 
 		if (isWhitelist)
 		{
-			tooltip.add(new TranslatableComponent("tooltip.bloodmagic.filter.whitelist").withStyle(ChatFormatting.GRAY));
+			tooltip.add(Component.translatable("tooltip.bloodmagic.filter.whitelist").withStyle(ChatFormatting.GRAY));
 		} else
 		{
-			tooltip.add(new TranslatableComponent("tooltip.bloodmagic.filter.blacklist").withStyle(ChatFormatting.GRAY));
+			tooltip.add(Component.translatable("tooltip.bloodmagic.filter.blacklist").withStyle(ChatFormatting.GRAY));
 		}
 
 		ItemInventory inv = new InventoryFilter(filterStack);
@@ -80,10 +78,10 @@ public class ItemTagFilter extends ItemRouterFilter implements INestableItemFilt
 			Component display = stack.getHoverName();
 			if (tag != null)
 			{
-				display = new TextComponent(tag.toString());
+				display = Component.literal(tag.toString());
 			} else
 			{
-				display = new TranslatableComponent("tooltip.bloodmagic.filter.anytag", display);
+				display = Component.translatable("tooltip.bloodmagic.filter.anytag", display);
 			}
 
 			if (isWhitelist)
@@ -91,10 +89,10 @@ public class ItemTagFilter extends ItemRouterFilter implements INestableItemFilt
 				int amount = GhostItemHelper.getItemGhostAmount(stack);
 				if (amount > 0)
 				{
-					tooltip.add(new TranslatableComponent("tooltip.bloodmagic.filter.count", amount, display));
+					tooltip.add(Component.translatable("tooltip.bloodmagic.filter.count", amount, display));
 				} else
 				{
-					tooltip.add(new TranslatableComponent("tooltip.bloodmagic.filter.all", display));
+					tooltip.add(Component.translatable("tooltip.bloodmagic.filter.all", display));
 				}
 			} else
 			{
@@ -331,7 +329,7 @@ public class ItemTagFilter extends ItemRouterFilter implements INestableItemFilt
 				ItemStack ghostStack = inv.getItem(ghostItemSlot);
 				if (ghostStack.isEmpty())
 				{
-					componentList.add(new TranslatableComponent("filter.bloodmagic.novalidtag"));
+					componentList.add(Component.translatable("filter.bloodmagic.novalidtag"));
 					return componentList;
 				}
 
@@ -346,14 +344,14 @@ public class ItemTagFilter extends ItemRouterFilter implements INestableItemFilt
 
 				if (locations.size() > 0)
 				{
-					componentList.add(new TranslatableComponent("filter.bloodmagic.anytag"));
+					componentList.add(Component.translatable("filter.bloodmagic.anytag"));
 					for (ResourceLocation rl : locations)
 					{
-						componentList.add(new TextComponent(rl.toString()));
+						componentList.add(Component.literal(rl.toString()));
 					}
 				} else
 				{
-					componentList.add(new TranslatableComponent("filter.bloodmagic.novalidtag"));
+					componentList.add(Component.translatable("filter.bloodmagic.novalidtag"));
 					return componentList;
 				}
 			} else
@@ -361,8 +359,8 @@ public class ItemTagFilter extends ItemRouterFilter implements INestableItemFilt
 				ResourceLocation rl = getItemTagResource(filterStack, ghostItemSlot);
 				if (rl != null)
 				{
-					componentList.add(new TranslatableComponent("filter.bloodmagic.specifiedtag"));
-					componentList.add(new TextComponent(rl.toString()));
+					componentList.add(Component.translatable("filter.bloodmagic.specifiedtag"));
+					componentList.add(Component.literal(rl.toString()));
 				}
 			}
 		}

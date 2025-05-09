@@ -19,8 +19,6 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
@@ -43,11 +41,11 @@ public class ScreenAlchemyTable extends ScreenBase<ContainerAlchemyTable>
 		this.imageHeight = 205;
 
 		orbError.clear();
-		orbError.add(new TranslatableComponent("tooltip.bloodmagic.alchemytable.orberror.title").withStyle(ChatFormatting.RED));
-		orbError.add(new TranslatableComponent("tooltip.bloodmagic.alchemytable.orberror.text").withStyle(ChatFormatting.GRAY));
+		orbError.add(Component.translatable("tooltip.bloodmagic.alchemytable.orberror.title").withStyle(ChatFormatting.RED));
+		orbError.add(Component.translatable("tooltip.bloodmagic.alchemytable.orberror.text").withStyle(ChatFormatting.GRAY));
 		lpError.clear();
-		lpError.add(new TranslatableComponent("tooltip.bloodmagic.alchemytable.lperror.title").withStyle(ChatFormatting.RED));
-		lpError.add(new TranslatableComponent("tooltip.bloodmagic.alchemytable.lperror.text").withStyle(ChatFormatting.GRAY));
+		lpError.add(Component.translatable("tooltip.bloodmagic.alchemytable.lperror.title").withStyle(ChatFormatting.RED));
+		lpError.add(Component.translatable("tooltip.bloodmagic.alchemytable.lperror.text").withStyle(ChatFormatting.GRAY));
 	}
 
 	@Override
@@ -59,8 +57,8 @@ public class ScreenAlchemyTable extends ScreenBase<ContainerAlchemyTable>
 	@Override
 	protected void renderLabels(PoseStack stack, int mouseX, int mouseY)
 	{
-		this.font.draw(stack, new TranslatableComponent("tile.bloodmagic.alchemytable.name"), 8, 5, 4210752);
-		this.font.draw(stack, new TranslatableComponent("container.inventory"), 8, 111, 4210752);
+		this.font.draw(stack, Component.translatable("tile.bloodmagic.alchemytable.name"), 8, 5, 4210752);
+		this.font.draw(stack, Component.translatable("container.inventory"), 8, 111, 4210752);
 	}
 
 	@Override
@@ -72,12 +70,12 @@ public class ScreenAlchemyTable extends ScreenBase<ContainerAlchemyTable>
 
 		this.clearWidgets();
 //		this.buttons.add();
-		this.addRenderableWidget(new Button(left + 135, top + 52, 14, 14, new TextComponent("D"), new DirectionalPress(tileTable, Direction.DOWN)));
-		this.addRenderableWidget(new Button(left + 153, top + 52, 14, 14, new TextComponent("U"), new DirectionalPress(tileTable, Direction.UP)));
-		this.addRenderableWidget(new Button(left + 135, top + 70, 14, 14, new TextComponent("N"), new DirectionalPress(tileTable, Direction.NORTH)));
-		this.addRenderableWidget(new Button(left + 153, top + 70, 14, 14, new TextComponent("S"), new DirectionalPress(tileTable, Direction.SOUTH)));
-		this.addRenderableWidget(new Button(left + 135, top + 88, 14, 14, new TextComponent("W"), new DirectionalPress(tileTable, Direction.WEST)));
-		this.addRenderableWidget(new Button(left + 153, top + 88, 14, 14, new TextComponent("E"), new DirectionalPress(tileTable, Direction.EAST)));
+		this.addRenderableWidget(new Button(left + 135, top + 52, 14, 14, Component.literal("D"), new DirectionalPress(tileTable, Direction.DOWN)));
+		this.addRenderableWidget(new Button(left + 153, top + 52, 14, 14, Component.literal("U"), new DirectionalPress(tileTable, Direction.UP)));
+		this.addRenderableWidget(new Button(left + 135, top + 70, 14, 14, Component.literal("N"), new DirectionalPress(tileTable, Direction.NORTH)));
+		this.addRenderableWidget(new Button(left + 153, top + 70, 14, 14, Component.literal("S"), new DirectionalPress(tileTable, Direction.SOUTH)));
+		this.addRenderableWidget(new Button(left + 135, top + 88, 14, 14, Component.literal("W"), new DirectionalPress(tileTable, Direction.WEST)));
+		this.addRenderableWidget(new Button(left + 153, top + 88, 14, 14, Component.literal("E"), new DirectionalPress(tileTable, Direction.EAST)));
 	}
 
 	@Override

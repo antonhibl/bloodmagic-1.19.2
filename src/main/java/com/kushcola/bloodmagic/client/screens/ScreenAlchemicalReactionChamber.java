@@ -10,7 +10,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import com.kushcola.bloodmagic.BloodMagic;
@@ -65,8 +64,8 @@ public class ScreenAlchemicalReactionChamber extends ScreenBase<ContainerAlchemi
 	@Override
 	protected void renderLabels(PoseStack stack, int mouseX, int mouseY)
 	{
-		this.font.draw(stack, new TranslatableComponent("tile.bloodmagic.arc.name"), 8, 5, 4210752);
-		this.font.draw(stack, new TranslatableComponent("container.inventory"), 8, 111, 4210752);
+		this.font.draw(stack, Component.translatable("tile.bloodmagic.arc.name"), 8, 5, 4210752);
+		this.font.draw(stack, Component.translatable("container.inventory"), 8, 111, 4210752);
 	}
 
 //

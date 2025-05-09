@@ -28,7 +28,7 @@ import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Material;
 import net.minecraftforge.common.extensions.IForgeMenuType;
-import net.minecraftforge.fluids.FluidAttributes;
+import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.ForgeFlowingFluid;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -134,7 +134,7 @@ public class BloodMagicBlocks
 
 	private static ForgeFlowingFluid.Properties makeLifeEssenceProperties()
 	{
-		return new ForgeFlowingFluid.Properties(LIFE_ESSENCE_FLUID, LIFE_ESSENCE_FLUID_FLOWING, FluidAttributes.builder(FLUID_STILL, FLUID_FLOWING).overlay(new ResourceLocation("block/water_overlay")).viscosity(1000).sound(SoundEvents.BUCKET_FILL, SoundEvents.BUCKET_EMPTY)).bucket(LIFE_ESSENCE_BUCKET).block(LIFE_ESSENCE_BLOCK);
+		return new ForgeFlowingFluid.Properties(LIFE_ESSENCE_FLUID, LIFE_ESSENCE_FLUID_FLOWING, FluidType.builder(FLUID_STILL, FLUID_FLOWING).overlay(new ResourceLocation("block/water_overlay")).viscosity(1000).sound(SoundEvents.BUCKET_FILL, SoundEvents.BUCKET_EMPTY)).bucket(LIFE_ESSENCE_BUCKET).block(LIFE_ESSENCE_BLOCK);
 	}
 
 	public static final ResourceLocation DOUBT_STILL_RESOURCE = new ResourceLocation("bloodmagic:block/liquid_doubt_still");
@@ -142,7 +142,7 @@ public class BloodMagicBlocks
 
 	private static ForgeFlowingFluid.Properties makeDoubtProperties()
 	{
-		return new ForgeFlowingFluid.Properties(DOUBT_FLUID, DOUBT_FLUID_FLOWING, FluidAttributes.builder(DOUBT_STILL_RESOURCE, DOUBT_FLOWING_RESOURCE).overlay(new ResourceLocation("block/water_overlay")).viscosity(1).sound(SoundEvents.BUCKET_FILL, SoundEvents.BUCKET_EMPTY)).bucket(DOUBT_BUCKET).block(DOUBT_BLOCK);
+		return new ForgeFlowingFluid.Properties(DOUBT_FLUID, DOUBT_FLUID_FLOWING, FluidType.builder(DOUBT_STILL_RESOURCE, DOUBT_FLOWING_RESOURCE).overlay(new ResourceLocation("block/water_overlay")).viscosity(1).sound(SoundEvents.BUCKET_FILL, SoundEvents.BUCKET_EMPTY)).bucket(DOUBT_BUCKET).block(DOUBT_BLOCK);
 	}
 
 	public static RegistryObject<FlowingFluid> LIFE_ESSENCE_FLUID = FLUIDS.register("life_essence_fluid", () -> new ForgeFlowingFluid.Source(makeLifeEssenceProperties()));

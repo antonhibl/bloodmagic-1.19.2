@@ -14,7 +14,6 @@ import com.kushcola.bloodmagic.impl.BloodMagicAPI;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -946,6 +945,11 @@ public class RitualCrafting extends Ritual
 	{
 		CraftingContainer craftingcontainer = new CraftingContainer(new AbstractContainerMenu((MenuType) null, -1)
 		{
+			@Override
+			public ItemStack quickMoveStack(Player p_38941_, int p_38942_) {
+				return null;
+			}
+
 			public boolean stillValid(Player p_29888_)
 			{
 				return false;
@@ -1002,8 +1006,8 @@ public class RitualCrafting extends Ritual
 	@Override
 	public Component[] provideInformationOfRitualToPlayer(Player player)
 	{
-		return new Component[] { new TranslatableComponent(this.getTranslationKey() + ".info"),
-				new TranslatableComponent(this.getTranslationKey() + ".steadfast.info"),
-				new TranslatableComponent(this.getTranslationKey() + ".corrosive.info") };
+		return new Component[] { Component.translatable(this.getTranslationKey() + ".info"),
+				Component.translatable(this.getTranslationKey() + ".steadfast.info"),
+				Component.translatable(this.getTranslationKey() + ".corrosive.info") };
 	}
 }

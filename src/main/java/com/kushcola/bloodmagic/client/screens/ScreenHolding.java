@@ -5,7 +5,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
@@ -42,7 +41,7 @@ public class ScreenHolding extends ScreenBase<ContainerHolding>
 	{
 //		this.font.draw(stack, new TranslationTextComponent("tile.bloodmagic.alchemytable.name"), 8, 5, 4210752);
 //		this.font.draw(stack, new TranslationTextComponent("container.inventory"), 8, 111, 4210752);
-		this.font.draw(stack, new TranslatableComponent("item.bloodmagic.sigilofholding"), 53, 4, 4210752);
+		this.font.draw(stack, Component.translatable("item.bloodmagic.sigilofholding"), 53, 4, 4210752);
 	}
 
 	@Override

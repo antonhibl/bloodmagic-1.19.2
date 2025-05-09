@@ -7,7 +7,6 @@ import com.kushcola.bloodmagic.demonaura.WorldDemonWillHandler;
 import com.kushcola.bloodmagic.network.SetClientHealthPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
@@ -227,12 +226,12 @@ public class RitualFeatheredKnife extends Ritual
 	@Override
 	public Component[] provideInformationOfRitualToPlayer(Player player)
 	{
-		return new Component[] { new TranslatableComponent(this.getTranslationKey() + ".info"),
-				new TranslatableComponent(this.getTranslationKey() + ".default.info"),
-				new TranslatableComponent(this.getTranslationKey() + ".corrosive.info"),
-				new TranslatableComponent(this.getTranslationKey() + ".steadfast.info"),
-				new TranslatableComponent(this.getTranslationKey() + ".destructive.info"),
-				new TranslatableComponent(this.getTranslationKey() + ".vengeful.info") };
+		return new Component[] { Component.translatable(this.getTranslationKey() + ".info"),
+				Component.translatable(this.getTranslationKey() + ".default.info"),
+				Component.translatable(this.getTranslationKey() + ".corrosive.info"),
+				Component.translatable(this.getTranslationKey() + ".steadfast.info"),
+				Component.translatable(this.getTranslationKey() + ".destructive.info"),
+				Component.translatable(this.getTranslationKey() + ".vengeful.info") };
 	}
 
 	public double getLPModifierForWill(double destructiveWill)

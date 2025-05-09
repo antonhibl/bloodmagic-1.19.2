@@ -8,7 +8,6 @@ import com.kushcola.bloodmagic.demonaura.WorldDemonWillHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -276,10 +275,10 @@ public class RitualYawningVoid extends Ritual
 	@Override
 	public Component[] provideInformationOfRitualToPlayer(Player player)
 	{
-		return new Component[] { new TranslatableComponent(this.getTranslationKey() + ".info"),
-				new TranslatableComponent(this.getTranslationKey() + ".default.info"),
-				new TranslatableComponent(this.getTranslationKey() + ".corrosive.info"),
-				new TranslatableComponent(this.getTranslationKey() + ".steadfast.info") };
+		return new Component[] { Component.translatable(this.getTranslationKey() + ".info"),
+				Component.translatable(this.getTranslationKey() + ".default.info"),
+				Component.translatable(this.getTranslationKey() + ".corrosive.info"),
+				Component.translatable(this.getTranslationKey() + ".steadfast.info") };
 	}
 
 	public int getRefreshTimeForRawWill(double rawWill)

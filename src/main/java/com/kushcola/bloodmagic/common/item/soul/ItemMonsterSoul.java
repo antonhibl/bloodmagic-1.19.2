@@ -15,7 +15,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -37,7 +36,7 @@ public class ItemMonsterSoul extends Item implements IDemonWill
 	{
 		if (!stack.hasTag())
 			return;
-		tooltip.add(new TranslatableComponent("tooltip.bloodmagic.will", ChatUtil.DECIMAL_FORMAT.format(getWill(getType(stack), stack))).withStyle(ChatFormatting.GRAY));
+		tooltip.add(Component.translatable("tooltip.bloodmagic.will", ChatUtil.DECIMAL_FORMAT.format(getWill(getType(stack), stack))).withStyle(ChatFormatting.GRAY));
 
 		super.appendHoverText(stack, world, tooltip, flag);
 	}

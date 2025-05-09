@@ -16,7 +16,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -39,7 +38,7 @@ public class ItemEnchantFilterCore extends ItemRouterFilter implements INestable
 	public void appendHoverText(ItemStack filterStack, Level world, List<Component> tooltip, TooltipFlag flag)
 	{
 //		super.addInformation(filterStack, world, tooltip, flag);
-		tooltip.add(new TranslatableComponent("tooltip.bloodmagic.enchantfilter.desc").withStyle(ChatFormatting.ITALIC).withStyle(ChatFormatting.GRAY));
+		tooltip.add(Component.translatable("tooltip.bloodmagic.enchantfilter.desc").withStyle(ChatFormatting.ITALIC).withStyle(ChatFormatting.GRAY));
 
 		if (filterStack.getTag() == null)
 		{
@@ -49,7 +48,7 @@ public class ItemEnchantFilterCore extends ItemRouterFilter implements INestable
 		boolean sneaking = Screen.hasShiftDown();
 		if (!sneaking)
 		{
-			tooltip.add(new TranslatableComponent("tooltip.bloodmagic.extraInfo").withStyle(ChatFormatting.BLUE));
+			tooltip.add(Component.translatable("tooltip.bloodmagic.extraInfo").withStyle(ChatFormatting.BLUE));
 		} else
 		{
 			int whitelistState = this.getCurrentButtonState(filterStack, Constants.BUTTONID.BLACKWHITELIST, 0);
@@ -57,10 +56,10 @@ public class ItemEnchantFilterCore extends ItemRouterFilter implements INestable
 
 			if (isWhitelist)
 			{
-				tooltip.add(new TranslatableComponent("tooltip.bloodmagic.filter.whitelist").withStyle(ChatFormatting.GRAY));
+				tooltip.add(Component.translatable("tooltip.bloodmagic.filter.whitelist").withStyle(ChatFormatting.GRAY));
 			} else
 			{
-				tooltip.add(new TranslatableComponent("tooltip.bloodmagic.filter.blacklist").withStyle(ChatFormatting.GRAY));
+				tooltip.add(Component.translatable("tooltip.bloodmagic.filter.blacklist").withStyle(ChatFormatting.GRAY));
 			}
 
 			ItemInventory inv = new InventoryFilter(filterStack);
@@ -79,17 +78,17 @@ public class ItemEnchantFilterCore extends ItemRouterFilter implements INestable
 					continue;
 				}
 
-				TranslatableComponent fuzzyText = new TranslatableComponent("tooltip.bloodmagic.filter.enchant_combination", fuzzyList.get(0), list.get(0));
+				Component fuzzyText = Component.translatable("tooltip.bloodmagic.filter.enchant_combination", fuzzyList.get(0), list.get(0));
 
 				if (isWhitelist)
 				{
 					int amount = GhostItemHelper.getItemGhostAmount(stack);
 					if (amount > 0)
 					{
-						tooltip.add(new TranslatableComponent("tooltip.bloodmagic.filter.count", amount, fuzzyText));
+						tooltip.add(Component.translatable("tooltip.bloodmagic.filter.count"));
 					} else
 					{
-						tooltip.add(new TranslatableComponent("tooltip.bloodmagic.filter.all", fuzzyText));
+						tooltip.add(Component.translatable("tooltip.bloodmagic.filter.all"));
 					}
 
 				} else
@@ -301,7 +300,7 @@ public class ItemEnchantFilterCore extends ItemRouterFilter implements INestable
 				ItemStack ghostStack = inv.getItem(ghostItemSlot);
 				if (ghostStack.isEmpty())
 				{
-					componentList.add(new TranslatableComponent("filter.bloodmagic.noenchant"));
+					componentList.add(Component.translatable("filter.bloodmagic.noenchant"));
 					return componentList;
 				}
 
@@ -311,10 +310,10 @@ public class ItemEnchantFilterCore extends ItemRouterFilter implements INestable
 				{
 					if (currentState == 0)
 					{
-						componentList.add(new TranslatableComponent("filter.bloodmagic.anyenchant"));
+						componentList.add(Component.translatable("filter.bloodmagic.anyenchant"));
 					} else
 					{
-						componentList.add(new TranslatableComponent("filter.bloodmagic.allenchant"));
+						componentList.add(Component.translatable("filter.bloodmagic.allenchant"));
 					}
 					for (Entry<Enchantment, Integer> entry : enchants.entrySet())
 					{
@@ -322,7 +321,7 @@ public class ItemEnchantFilterCore extends ItemRouterFilter implements INestable
 					}
 				} else
 				{
-					componentList.add(new TranslatableComponent("filter.bloodmagic.noenchant"));
+					componentList.add(Component.translatable("filter.bloodmagic.noenchant"));
 					return componentList;
 				}
 			} else
@@ -338,10 +337,10 @@ public class ItemEnchantFilterCore extends ItemRouterFilter implements INestable
 			boolean isFuzzy = this.getIsFuzzy(filterStack, ghostItemSlot);
 			if (isFuzzy)
 			{
-				componentList.add(new TranslatableComponent("filter.bloodmagic.enchantfuzzy"));
+				componentList.add(Component.translatable("filter.bloodmagic.enchantfuzzy"));
 			} else
 			{
-				componentList.add(new TranslatableComponent("filter.bloodmagic.enchantnotfuzzy"));
+				componentList.add(Component.translatable("filter.bloodmagic.enchantnotfuzzy"));
 			}
 		}
 

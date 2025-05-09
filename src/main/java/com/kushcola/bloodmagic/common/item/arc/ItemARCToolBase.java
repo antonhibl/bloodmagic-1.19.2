@@ -6,7 +6,6 @@ import com.kushcola.bloodmagic.api.compat.EnumDemonWillType;
 import com.kushcola.bloodmagic.util.ChatUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -48,13 +47,13 @@ public class ItemARCToolBase extends Item implements IARCTool
 	@OnlyIn(Dist.CLIENT)
 	public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag flag)
 	{
-		tooltip.add(new TranslatableComponent("tooltip.bloodmagic.arctool.uses", stack.getMaxDamage() - stack.getDamageValue()).withStyle(ChatFormatting.GRAY));
+		tooltip.add(Component.translatable("tooltip.bloodmagic.arctool.uses", stack.getMaxDamage() - stack.getDamageValue()).withStyle(ChatFormatting.GRAY));
 
 		if (getCraftingSpeedMultiplier(stack) != 1)
-			tooltip.add(new TranslatableComponent("tooltip.bloodmagic.arctool.craftspeed", ChatUtil.DECIMAL_FORMAT.format(getCraftingSpeedMultiplier(stack))).withStyle(ChatFormatting.GRAY));
+			tooltip.add(Component.translatable("tooltip.bloodmagic.arctool.craftspeed", ChatUtil.DECIMAL_FORMAT.format(getCraftingSpeedMultiplier(stack))).withStyle(ChatFormatting.GRAY));
 
 		if (getAdditionalOutputChanceMultiplier(stack) != 1)
-			tooltip.add(new TranslatableComponent("tooltip.bloodmagic.arctool.additionaldrops", ChatUtil.DECIMAL_FORMAT.format(getAdditionalOutputChanceMultiplier(stack))).withStyle(ChatFormatting.GRAY));
+			tooltip.add(Component.translatable("tooltip.bloodmagic.arctool.additionaldrops", ChatUtil.DECIMAL_FORMAT.format(getAdditionalOutputChanceMultiplier(stack))).withStyle(ChatFormatting.GRAY));
 
 		super.appendHoverText(stack, world, tooltip, flag);
 	}

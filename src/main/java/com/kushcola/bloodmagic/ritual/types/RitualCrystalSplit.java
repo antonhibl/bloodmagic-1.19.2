@@ -8,7 +8,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.level.Level;
 import com.kushcola.bloodmagic.BloodMagic;
 import com.kushcola.bloodmagic.api.compat.EnumDemonWillType;
@@ -210,6 +209,6 @@ public class RitualCrystalSplit extends Ritual
 	@Override
 	public Component[] provideInformationOfRitualToPlayer(Player player)
 	{
-		return new Component[] { new TranslatableComponent(this.getTranslationKey() + ".info") };
+		return new Component[] { Component.translatable(this.getTranslationKey() + ".info") };
 	}
 }

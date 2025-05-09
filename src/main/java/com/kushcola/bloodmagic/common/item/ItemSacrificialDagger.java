@@ -6,7 +6,6 @@ import com.kushcola.bloodmagic.ConfigManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -44,7 +43,7 @@ public class ItemSacrificialDagger extends Item
 	public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag flag)
 	{
 //		tooltip.addAll(Arrays.asList(TextHelper.cutLongString(TextHelper.localizeEffect("tooltip.bloodmagic.sacrificialDagger.desc"))));
-		tooltip.add(new TranslatableComponent("tooltip.bloodmagic.sacrificialdagger.desc").withStyle(ChatFormatting.GRAY));
+		tooltip.add(Component.translatable("tooltip.bloodmagic.sacrificialdagger.desc").withStyle(ChatFormatting.GRAY));
 
 //		if (stack.getItemDamage() == 1)
 //			list.add(TextHelper.localizeEffect("tooltip.bloodmagic.sacrificialDagger.creative"));

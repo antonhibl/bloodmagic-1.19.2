@@ -14,7 +14,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -62,6 +61,6 @@ public class ItemInscriptionTool extends Item
 	@OnlyIn(Dist.CLIENT)
 	public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag flag)
 	{
-		tooltip.add(new TranslatableComponent(TextHelper.localizeEffect("tooltip.bloodmagic.inscriber.desc")).withStyle(ChatFormatting.GRAY));
+		tooltip.add(Component.translatable(TextHelper.localizeEffect("tooltip.bloodmagic.inscriber.desc")).withStyle(ChatFormatting.GRAY));
 	}
 }

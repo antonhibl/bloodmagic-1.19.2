@@ -47,7 +47,7 @@ public class BloodMagicKeyHandler
 		return false;
 	}
 
-	public void keyTick(InputEvent.KeyInputEvent event)
+	public void keyTick(InputEvent.Key event)
 	{
 //		System.out.println("Pressing the key handlers");
 		for (int i = 0; i < KeyBindings.values().length; i++)

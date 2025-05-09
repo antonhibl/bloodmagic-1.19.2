@@ -14,8 +14,6 @@ import com.kushcola.bloodmagic.util.Utils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -80,10 +78,10 @@ public class ItemLivingTrainer extends Item implements ILivingContainer, MenuPro
 			boolean isWhitelist = getIsWhitelist(stack);
 			if (isWhitelist)
 			{
-				tooltip.add(new TranslatableComponent("tooltip.bloodmagic.trainer.whitelist"));
+				tooltip.add(Component.translatable("tooltip.bloodmagic.trainer.whitelist"));
 			} else
 			{
-				tooltip.add(new TranslatableComponent("tooltip.bloodmagic.trainer.blacklist"));
+				tooltip.add(Component.translatable("tooltip.bloodmagic.trainer.blacklist"));
 			}
 
 			Map<LivingUpgrade, Integer> positiveUpgradeMap = new HashMap<>();
@@ -98,15 +96,15 @@ public class ItemLivingTrainer extends Item implements ILivingContainer, MenuPro
 			});
 
 			positiveUpgradeMap.forEach((k, v) -> {
-				tooltip.add(new TranslatableComponent("%s %s", new TranslatableComponent(k.getTranslationKey()), new TranslatableComponent("enchantment.level." + v)).withStyle(ChatFormatting.GRAY));
+				tooltip.add(Component.translatable("%s %s", Component.translatable(k.getTranslationKey()), Component.translatable("enchantment.level." + v)).withStyle(ChatFormatting.GRAY));
 			});
 
 			if (!zeroUpgradeList.isEmpty() && !isWhitelist)
 			{
-				tooltip.add(new TranslatableComponent("tooltip.bloodmagic.trainer.deny"));
+				tooltip.add(Component.translatable("tooltip.bloodmagic.trainer.deny"));
 				for (LivingUpgrade upgrade : zeroUpgradeList)
 				{
-					tooltip.add(new TranslatableComponent(upgrade.getTranslationKey()).withStyle(ChatFormatting.GRAY));
+					tooltip.add(Component.translatable(upgrade.getTranslationKey()).withStyle(ChatFormatting.GRAY));
 				}
 			}
 		}
@@ -144,7 +142,7 @@ public class ItemLivingTrainer extends Item implements ILivingContainer, MenuPro
 	public Component getDisplayName()
 	{
 		// TODO Auto-generated method stub
-		return new TextComponent("Bracelet");
+		return Component.literal("Bracelet");
 	}
 
 	public void setTomeLevel(ItemStack trainerStack, int slot, int desiredLevel)

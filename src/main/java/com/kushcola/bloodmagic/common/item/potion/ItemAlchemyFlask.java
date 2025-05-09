@@ -11,7 +11,6 @@ import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
@@ -41,7 +40,7 @@ public class ItemAlchemyFlask extends Item
 	@OnlyIn(Dist.CLIENT)
 	public void appendHoverText(ItemStack stack, @Nullable Level worldIn, List<Component> tooltip, TooltipFlag flagIn)
 	{
-		tooltip.add(new TranslatableComponent("tooltip.bloodmagic.arctool.uses", getRemainingUses(stack)).withStyle(ChatFormatting.GOLD));
+		tooltip.add(Component.translatable("tooltip.bloodmagic.arctool.uses", getRemainingUses(stack)).withStyle(ChatFormatting.GOLD));
 		PotionUtils.addPotionTooltip(stack, tooltip, 1.0F);
 	}
 

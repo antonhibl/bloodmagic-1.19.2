@@ -5,6 +5,7 @@ import java.util.Random;
 import java.util.function.Consumer;
 
 import com.kushcola.bloodmagic.demonaura.WorldDemonWillHandler;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
@@ -18,7 +19,6 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
 import com.kushcola.bloodmagic.BloodMagic;
@@ -119,7 +119,7 @@ public class RitualGreenGrove extends Ritual
 				{
 					if (world.random.nextDouble() < growthChance)
 					{
-						state.getBlock().randomTick(state, serverWorld, newPos, new Random());
+						state.getBlock().randomTick(state, serverWorld, newPos, (RandomSource) new Random());
 						BlockState newState = world.getBlockState(newPos);
 						if (!newState.equals(state))
 						{
@@ -329,12 +329,12 @@ public class RitualGreenGrove extends Ritual
 	@Override
 	public Component[] provideInformationOfRitualToPlayer(Player player)
 	{
-		return new Component[] { new TranslatableComponent(this.getTranslationKey() + ".info"),
-				new TranslatableComponent(this.getTranslationKey() + ".default.info"),
-				new TranslatableComponent(this.getTranslationKey() + ".corrosive.info"),
-				new TranslatableComponent(this.getTranslationKey() + ".steadfast.info"),
-				new TranslatableComponent(this.getTranslationKey() + ".destructive.info"),
-				new TranslatableComponent(this.getTranslationKey() + ".vengeful.info") };
+		return new Component[] { Component.translatable(this.getTranslationKey() + ".info"),
+				Component.translatable(this.getTranslationKey() + ".default.info"),
+				Component.translatable(this.getTranslationKey() + ".corrosive.info"),
+				Component.translatable(this.getTranslationKey() + ".steadfast.info"),
+				Component.translatable(this.getTranslationKey() + ".destructive.info"),
+				Component.translatable(this.getTranslationKey() + ".vengeful.info") };
 	}
 
 	@Override

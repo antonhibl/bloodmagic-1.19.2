@@ -17,7 +17,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -136,8 +135,8 @@ public class ItemTeleposerFocus extends ItemBindableBase implements ITeleposerFo
 		if (storedKey != null)
 		{
 			BlockPos storedPos = getStoredPos(stack);
-			tooltip.add(new TranslatableComponent(TextHelper.localizeEffect("tooltip.bloodmagic.telepositionfocus.coords", storedPos.getX(), storedPos.getY(), storedPos.getZ())).withStyle(ChatFormatting.GRAY));
-			tooltip.add(new TranslatableComponent("tooltip.bloodmagic.telepositionfocus.world", new TranslatableComponent(storedKey.location().toString())).withStyle(ChatFormatting.GRAY));
+			tooltip.add(Component.translatable(TextHelper.localizeEffect("tooltip.bloodmagic.telepositionfocus.coords", storedPos.getX(), storedPos.getY(), storedPos.getZ())).withStyle(ChatFormatting.GRAY));
+			tooltip.add(Component.translatable("tooltip.bloodmagic.telepositionfocus.world", Component.translatable(storedKey.location().toString())).withStyle(ChatFormatting.GRAY));
 		}
 	}
 

@@ -12,4 +12,9 @@ public interface IBloodOrb
 {
 	@Nullable
 	BloodOrb getOrb(ItemStack stack);
+
+	//
+	ItemStack getContainerItem(ItemStack stack);
+
+	boolean hasContainerItem(ItemStack stack);
 }

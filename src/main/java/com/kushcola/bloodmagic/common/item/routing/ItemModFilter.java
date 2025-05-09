@@ -7,7 +7,6 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -27,7 +26,7 @@ public class ItemModFilter extends ItemRouterFilter implements INestableItemFilt
 	@OnlyIn(Dist.CLIENT)
 	public void appendHoverText(ItemStack filterStack, Level world, List<Component> tooltip, TooltipFlag flag)
 	{
-		tooltip.add(new TranslatableComponent("tooltip.bloodmagic.modfilter.desc").withStyle(ChatFormatting.ITALIC).withStyle(ChatFormatting.GRAY));
+		tooltip.add(Component.translatable("tooltip.bloodmagic.modfilter.desc").withStyle(ChatFormatting.ITALIC).withStyle(ChatFormatting.GRAY));
 
 		if (filterStack.getTag() == null)
 		{
@@ -37,7 +36,7 @@ public class ItemModFilter extends ItemRouterFilter implements INestableItemFilt
 		boolean sneaking = Screen.hasShiftDown();
 		if (!sneaking)
 		{
-			tooltip.add(new TranslatableComponent("tooltip.bloodmagic.extraInfo").withStyle(ChatFormatting.BLUE));
+			tooltip.add(Component.translatable("tooltip.bloodmagic.extraInfo").withStyle(ChatFormatting.BLUE));
 		} else
 		{
 			int whitelistState = this.getCurrentButtonState(filterStack, Constants.BUTTONID.BLACKWHITELIST, 0);
@@ -45,10 +44,10 @@ public class ItemModFilter extends ItemRouterFilter implements INestableItemFilt
 
 			if (isWhitelist)
 			{
-				tooltip.add(new TranslatableComponent("tooltip.bloodmagic.filter.whitelist").withStyle(ChatFormatting.GRAY));
+				tooltip.add(Component.translatable("tooltip.bloodmagic.filter.whitelist").withStyle(ChatFormatting.GRAY));
 			} else
 			{
-				tooltip.add(new TranslatableComponent("tooltip.bloodmagic.filter.blacklist").withStyle(ChatFormatting.GRAY));
+				tooltip.add(Component.translatable("tooltip.bloodmagic.filter.blacklist").withStyle(ChatFormatting.GRAY));
 			}
 			ItemInventory inv = new InventoryFilter(filterStack);
 			for (int i = 0; i < inv.getContainerSize(); i++)
@@ -59,17 +58,17 @@ public class ItemModFilter extends ItemRouterFilter implements INestableItemFilt
 					continue;
 				}
 
-				TranslatableComponent modText = new TranslatableComponent("tooltip.bloodmagic.filter.from_mod", stack.getItem().getRegistryName().getNamespace());
+				Component modText = Component.translatable("tooltip.bloodmagic.filter.from_mod", stack.getItem().getRegistryName().getNamespace());
 
 				if (isWhitelist)
 				{
 					int amount = GhostItemHelper.getItemGhostAmount(stack);
 					if (amount > 0)
 					{
-						tooltip.add(new TranslatableComponent("tooltip.bloodmagic.filter.count", amount, modText));
+						tooltip.add(Component.translatable("tooltip.bloodmagic.filter.count"));
 					} else
 					{
-						tooltip.add(new TranslatableComponent("tooltip.bloodmagic.filter.all", modText));
+						tooltip.add(Component.translatable("tooltip.bloodmagic.filter.all"));
 					}
 
 				} else

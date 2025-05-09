@@ -12,7 +12,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.items.IItemHandler;
 import com.kushcola.bloodmagic.BloodMagic;
@@ -227,12 +226,12 @@ public class RitualAnimalGrowth extends Ritual
 	@Override
 	public Component[] provideInformationOfRitualToPlayer(Player player)
 	{
-		return new Component[] { new TranslatableComponent(this.getTranslationKey() + ".info"),
-				new TranslatableComponent(this.getTranslationKey() + ".default.info"),
-				new TranslatableComponent(this.getTranslationKey() + ".corrosive.info"),
-				new TranslatableComponent(this.getTranslationKey() + ".steadfast.info"),
-				new TranslatableComponent(this.getTranslationKey() + ".destructive.info"),
-				new TranslatableComponent(this.getTranslationKey() + ".vengeful.info") };
+		return new Component[] { Component.translatable(this.getTranslationKey() + ".info"),
+				Component.translatable(this.getTranslationKey() + ".default.info"),
+				Component.translatable(this.getTranslationKey() + ".corrosive.info"),
+				Component.translatable(this.getTranslationKey() + ".steadfast.info"),
+				Component.translatable(this.getTranslationKey() + ".destructive.info"),
+				Component.translatable(this.getTranslationKey() + ".vengeful.info") };
 	}
 
 	public int getBreedingDecreaseForWill(double vengefulWill)

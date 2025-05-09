@@ -9,7 +9,6 @@ import com.kushcola.bloodmagic.common.tile.TileDungeonSeal;
 import com.kushcola.bloodmagic.util.ChatUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -54,7 +53,7 @@ public class BlockDungeonSeal extends Block implements EntityBlock
 		{
 			// Key didn't work
 			List<Component> toSend = Lists.newArrayList();
-			toSend.add(new TranslatableComponent("tooltip.bloodmagic.incorrectKey"));
+			toSend.add(Component.translatable("tooltip.bloodmagic.incorrectKey"));
 			ChatUtil.sendNoSpam(player, toSend.toArray(new Component[toSend.size()]));
 			world.playSound((Player) null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, SoundEvents.FLINTANDSTEEL_USE, SoundSource.BLOCKS, 1.0F, world.random.nextFloat() * 0.4F + 0.8F);
 		}
