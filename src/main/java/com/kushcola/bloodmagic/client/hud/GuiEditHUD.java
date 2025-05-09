@@ -13,8 +13,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec2;
 
@@ -29,7 +28,7 @@ public class GuiEditHUD extends Screen
 
 	public GuiEditHUD(Screen parent)
 	{
-		super(new TextComponent("Testing GuiEditHUD"));
+		super(Component.literal("Testing GuiEditHUD"));
 		this.parent = parent;
 	}
 
@@ -38,7 +37,7 @@ public class GuiEditHUD extends Screen
 	{
 		super.init();
 
-		addRenderableWidget(new Button(width / 2 - 155, height - 30, 70, 20, new TranslatableComponent("gui.bloodmagic.toggle"), b -> {
+		addRenderableWidget(new Button(width / 2 - 155, height - 30, 70, 20, Component.translatable("gui.bloodmagic.toggle"), b -> {
 			Minecraft.getInstance().setScreen(parent);
 		})
 		{
@@ -46,16 +45,16 @@ public class GuiEditHUD extends Screen
 				active = false;
 			}
 		});
-		addRenderableWidget(new Button(width / 2 - 75, height - 30, 70, 20, new TranslatableComponent("gui.bloodmagic.default"), b -> {
+		addRenderableWidget(new Button(width / 2 - 75, height - 30, 70, 20, Component.translatable("gui.bloodmagic.default"), b -> {
 			currentOverrides.clear();
 			ElementRegistry.resetPos();
 			changes = false;
 		}));
-		addRenderableWidget(new Button(width / 2 + 5, height - 30, 70, 20, new TranslatableComponent("gui.bloodmagic.save"), b -> {
+		addRenderableWidget(new Button(width / 2 + 5, height - 30, 70, 20, Component.translatable("gui.bloodmagic.save"), b -> {
 			ElementRegistry.save(currentOverrides);
 			Minecraft.getInstance().setScreen(parent);
 		}));
-		addRenderableWidget(new Button(width / 2 + 90, height - 30, 70, 20, new TranslatableComponent("gui.bloodmagic.cancel"), b -> {
+		addRenderableWidget(new Button(width / 2 + 90, height - 30, 70, 20, Component.translatable("gui.bloodmagic.cancel"), b -> {
 			currentOverrides.clear();
 			Minecraft.getInstance().setScreen(parent);
 		}));

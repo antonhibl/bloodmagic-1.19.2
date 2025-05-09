@@ -4,6 +4,7 @@ import com.kushcola.bloodmagic.common.block.BlockSpikeTrap;
 import com.kushcola.bloodmagic.common.block.BloodMagicBlocks;
 import com.kushcola.bloodmagic.common.tile.base.TileTicking;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.block.Blocks;
@@ -12,15 +13,22 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraftforge.registries.ObjectHolder;
 
+import java.util.UUID;
+
 public class TileSpikeTrap extends TileTicking
 {
 
-	@ObjectHolder("bloodmagic:spiketrap")
+	@ObjectHolder(registryName = "bloodmagic", value = "bloodmagic:spiketrap")
 	public static BlockEntityType<TileSpikeTrap> TYPE;
 
 	public TileSpikeTrap(BlockEntityType<?> type, BlockPos pos, BlockState state)
 	{
 		super(type, pos, state);
+	}
+
+	@Override
+	public void sendMessage(Component component, UUID senderUUID) {
+
 	}
 
 	public TileSpikeTrap(BlockPos pos, BlockState state)
