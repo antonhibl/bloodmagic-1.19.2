@@ -1,14 +1,8 @@
 package com.kushcola.bloodmagic.anointment;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 import com.google.common.collect.HashMultimap;
@@ -24,6 +18,9 @@ import com.google.gson.JsonParseException;
 import com.google.gson.annotations.JsonAdapter;
 
 import com.kushcola.bloodmagic.core.living.LivingUpgrade;
+import com.mojang.serialization.Codec;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -35,11 +32,14 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.Util;
 import net.minecraft.core.Registry;
-import net.minecraftforge.registries.ForgeRegistryEntry;
+import net.minecraftforge.registries.IForgeRegistry;
+import net.minecraftforge.registries.tags.ITagManager;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 
 @JsonAdapter(Anointment.Deserializer.class)
-public class Anointment extends ForgeRegistryEntry<Anointment>
-{
+public class Anointment implements IForgeRegistry<Anointment> {
 	public static final Anointment DUMMY = new Anointment(new ResourceLocation("dummy"));
 
 	private final ResourceLocation key;
@@ -247,6 +247,142 @@ public class Anointment extends ForgeRegistryEntry<Anointment>
 	public IDamageProvider getDamageProvider()
 	{
 		return damageProvider;
+	}
+
+	@Override
+	public ResourceKey<Registry<Anointment>> getRegistryKey() {
+		return null;
+	}
+
+	@Override
+	public ResourceLocation getRegistryName() {
+		return null;
+	}
+
+	@Override
+	public void register(String key, Anointment value) {
+
+	}
+
+	@Override
+	public void register(ResourceLocation key, Anointment value) {
+
+	}
+
+	@Override
+	public boolean containsKey(ResourceLocation key) {
+		return false;
+	}
+
+	@Override
+	public boolean containsValue(Anointment value) {
+		return false;
+	}
+
+	@Override
+	public boolean isEmpty() {
+		return false;
+	}
+
+	@Override
+	public @Nullable Anointment getValue(ResourceLocation key) {
+		return null;
+	}
+
+	@Override
+	public @Nullable ResourceLocation getKey(Anointment value) {
+		return null;
+	}
+
+	@Override
+	public @Nullable ResourceLocation getDefaultKey() {
+		return null;
+	}
+
+	@Override
+	public @NotNull Optional<ResourceKey<Anointment>> getResourceKey(Anointment value) {
+		return Optional.empty();
+	}
+
+	@Override
+	public @NotNull Set<ResourceLocation> getKeys() {
+		return null;
+	}
+
+	@Override
+	public @NotNull Collection<Anointment> getValues() {
+		return null;
+	}
+
+	@Override
+	public @NotNull Set<Entry<ResourceKey<Anointment>, Anointment>> getEntries() {
+		return null;
+	}
+
+	@Override
+	public @NotNull Codec<Anointment> getCodec() {
+		return null;
+	}
+
+	@Override
+	public @NotNull Optional<Holder<Anointment>> getHolder(ResourceKey<Anointment> key) {
+		return Optional.empty();
+	}
+
+	@Override
+	public @NotNull Optional<Holder<Anointment>> getHolder(ResourceLocation location) {
+		return Optional.empty();
+	}
+
+	@Override
+	public @NotNull Optional<Holder<Anointment>> getHolder(Anointment value) {
+		return Optional.empty();
+	}
+
+	@Override
+	public @Nullable ITagManager<Anointment> tags() {
+		return null;
+	}
+
+	@Override
+	public @NotNull Optional<Holder.Reference<Anointment>> getDelegate(ResourceKey<Anointment> rkey) {
+		return Optional.empty();
+	}
+
+	@Override
+	public Holder.@NotNull Reference<Anointment> getDelegateOrThrow(ResourceKey<Anointment> rkey) {
+		return null;
+	}
+
+	@Override
+	public @NotNull Optional<Holder.Reference<Anointment>> getDelegate(ResourceLocation key) {
+		return Optional.empty();
+	}
+
+	@Override
+	public Holder.@NotNull Reference<Anointment> getDelegateOrThrow(ResourceLocation key) {
+		return null;
+	}
+
+	@Override
+	public @NotNull Optional<Holder.Reference<Anointment>> getDelegate(Anointment value) {
+		return Optional.empty();
+	}
+
+	@Override
+	public Holder.@NotNull Reference<Anointment> getDelegateOrThrow(Anointment value) {
+		return null;
+	}
+
+	@Override
+	public <T> T getSlaveMap(ResourceLocation slaveMapName, Class<T> type) {
+		return null;
+	}
+
+	@NotNull
+	@Override
+	public Iterator<Anointment> iterator() {
+		return null;
 	}
 
 	public interface IAttributeProvider

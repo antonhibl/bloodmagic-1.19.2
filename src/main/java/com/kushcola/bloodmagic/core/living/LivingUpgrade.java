@@ -1,14 +1,8 @@
 package com.kushcola.bloodmagic.core.living;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 import com.google.common.collect.Lists;
@@ -24,6 +18,10 @@ import com.google.gson.JsonParseException;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 
+import com.mojang.serialization.Codec;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -32,11 +30,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.Util;
-import net.minecraftforge.registries.ForgeRegistryEntry;
+import net.minecraftforge.registries.IForgeRegistry;
+import net.minecraftforge.registries.tags.ITagManager;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @JsonAdapter(LivingUpgrade.Deserializer.class)
-public class LivingUpgrade extends ForgeRegistryEntry<LivingUpgrade>
-{
+public class LivingUpgrade implements IForgeRegistry<LivingUpgrade> {
 	public static final LivingUpgrade DUMMY = new LivingUpgrade(new ResourceLocation("dummy"), levels -> levels.add(new Level(0, 0)));
 
 	private final ResourceLocation key;
@@ -191,6 +191,142 @@ public class LivingUpgrade extends ForgeRegistryEntry<LivingUpgrade>
 	public String toString()
 	{
 		return key.toString();
+	}
+
+	@Override
+	public ResourceKey<Registry<LivingUpgrade>> getRegistryKey() {
+		return null;
+	}
+
+	@Override
+	public ResourceLocation getRegistryName() {
+		return null;
+	}
+
+	@Override
+	public void register(String key, LivingUpgrade value) {
+
+	}
+
+	@Override
+	public void register(ResourceLocation key, LivingUpgrade value) {
+
+	}
+
+	@Override
+	public boolean containsKey(ResourceLocation key) {
+		return false;
+	}
+
+	@Override
+	public boolean containsValue(LivingUpgrade value) {
+		return false;
+	}
+
+	@Override
+	public boolean isEmpty() {
+		return false;
+	}
+
+	@Override
+	public @Nullable LivingUpgrade getValue(ResourceLocation key) {
+		return null;
+	}
+
+	@Override
+	public @Nullable ResourceLocation getKey(LivingUpgrade value) {
+		return null;
+	}
+
+	@Override
+	public @Nullable ResourceLocation getDefaultKey() {
+		return null;
+	}
+
+	@Override
+	public @NotNull Optional<ResourceKey<LivingUpgrade>> getResourceKey(LivingUpgrade value) {
+		return Optional.empty();
+	}
+
+	@Override
+	public @NotNull Set<ResourceLocation> getKeys() {
+		return null;
+	}
+
+	@Override
+	public @NotNull Collection<LivingUpgrade> getValues() {
+		return null;
+	}
+
+	@Override
+	public @NotNull Set<Entry<ResourceKey<LivingUpgrade>, LivingUpgrade>> getEntries() {
+		return null;
+	}
+
+	@Override
+	public @NotNull Codec<LivingUpgrade> getCodec() {
+		return null;
+	}
+
+	@Override
+	public @NotNull Optional<Holder<LivingUpgrade>> getHolder(ResourceKey<LivingUpgrade> key) {
+		return Optional.empty();
+	}
+
+	@Override
+	public @NotNull Optional<Holder<LivingUpgrade>> getHolder(ResourceLocation location) {
+		return Optional.empty();
+	}
+
+	@Override
+	public @NotNull Optional<Holder<LivingUpgrade>> getHolder(LivingUpgrade value) {
+		return Optional.empty();
+	}
+
+	@Override
+	public @Nullable ITagManager<LivingUpgrade> tags() {
+		return null;
+	}
+
+	@Override
+	public @NotNull Optional<Holder.Reference<LivingUpgrade>> getDelegate(ResourceKey<LivingUpgrade> rkey) {
+		return Optional.empty();
+	}
+
+	@Override
+	public Holder.@NotNull Reference<LivingUpgrade> getDelegateOrThrow(ResourceKey<LivingUpgrade> rkey) {
+		return null;
+	}
+
+	@Override
+	public @NotNull Optional<Holder.Reference<LivingUpgrade>> getDelegate(ResourceLocation key) {
+		return Optional.empty();
+	}
+
+	@Override
+	public Holder.@NotNull Reference<LivingUpgrade> getDelegateOrThrow(ResourceLocation key) {
+		return null;
+	}
+
+	@Override
+	public @NotNull Optional<Holder.Reference<LivingUpgrade>> getDelegate(LivingUpgrade value) {
+		return Optional.empty();
+	}
+
+	@Override
+	public Holder.@NotNull Reference<LivingUpgrade> getDelegateOrThrow(LivingUpgrade value) {
+		return null;
+	}
+
+	@Override
+	public <T> T getSlaveMap(ResourceLocation slaveMapName, Class<T> type) {
+		return null;
+	}
+
+	@NotNull
+	@Override
+	public Iterator<LivingUpgrade> iterator() {
+		return null;
 	}
 
 	public interface IAttributeProvider
