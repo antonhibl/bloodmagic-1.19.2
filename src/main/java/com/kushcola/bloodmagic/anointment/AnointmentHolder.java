@@ -10,12 +10,12 @@ import com.google.common.collect.Maps;
 
 import com.kushcola.bloodmagic.core.AnointmentRegistrar;
 import com.kushcola.bloodmagic.util.Constants;
+import net.minecraft.Util;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
@@ -55,17 +55,16 @@ public class AnointmentHolder
 			anointment.applyAnointment(this, stack, data.getLevel());
 			return true;
 		}
-
 		return false;
 	}
 
 	public boolean canApplyAnointment(ItemStack stack, Anointment anointment, AnointmentData data)
 	{
 		ResourceLocation key = anointment.getKey();
-		for (Anointment containedAnoint : anointments.keySet())
+		for (Anointment existing : anointments.keySet())
 		{
-			ResourceLocation containedKey = containedAnoint.getKey();
-			if (!anointment.isCompatible(containedKey) || !containedAnoint.isCompatible(key))
+			ResourceLocation existingKey = existing.getKey();
+			if (!anointment.isCompatible(existingKey) || !existing.isCompatible(key))
 			{
 				return false;
 			}
@@ -73,146 +72,118 @@ public class AnointmentHolder
 
 		if (anointments.containsKey(anointment))
 		{
-			AnointmentData prevData = anointments.get(anointment);
-			int level = prevData.getLevel();
-			int remainingDur = prevData.getMaxDamage() - prevData.getDamage();
-			if (level < data.getLevel() || (level == data.getLevel() && remainingDur < (data.getMaxDamage() - data.getDamage())))
-			{
-				return true;
-			} else
-			{
-				return false;
-			}
+			AnointmentData prev = anointments.get(anointment);
+			int level = prev.getLevel();
+			int remaining = prev.getMaxDamage() - prev.getDamage();
+			int newRemaining = data.getMaxDamage() - data.getDamage();
+			return level < data.getLevel() || (level == data.getLevel() && remaining < newRemaining);
 		}
 
 		return true;
 	}
 
+	/** Fixed: no more EMPTY reference */
 	public int getAnointmentLevel(Anointment anointment)
 	{
-		if (anointments.containsKey(anointment))
-		{
-			return anointments.get(anointment).getLevel();
-		}
-
-		return 0;
+		AnointmentData data = anointments.get(anointment);
+		return data != null ? data.getLevel() : 0;
 	}
 
-	public boolean consumeAnointmentDurabilityOnHit(ItemStack weaponStack, EquipmentSlot type, LivingEntity user)
+	public boolean consumeAnointmentDurabilityOnHit(ItemStack stack, EquipmentSlot slot, LivingEntity user)
 	{
-//		System.out.println("Attempting consumption");
-		boolean didConsume = false;
-		List<Anointment> removedAnointments = new ArrayList<Anointment>();
+		boolean consumed = false;
+		List<Anointment> toRemove = new ArrayList<>();
+
 		for (Entry<Anointment, AnointmentData> entry : anointments.entrySet())
 		{
-			Anointment annointment = entry.getKey();
-			if (annointment.consumeOnAttack())
+			Anointment ann = entry.getKey();
+			if (ann.consumeOnAttack())
 			{
 				AnointmentData data = entry.getValue();
 				data.damage(1);
-				didConsume = true;
+				consumed = true;
 				if (data.isMaxDamage())
-				{
-					removedAnointments.add(annointment);
-				}
+					toRemove.add(ann);
 			}
 		}
 
-		for (Anointment anointment : removedAnointments)
-		{
-			removeAnointment(weaponStack, type, anointment, user);
-		}
-
-		return didConsume;
+		toRemove.forEach(ann -> removeAnointment(stack, slot, ann, user));
+		return consumed;
 	}
 
-	public boolean consumeAnointmentDurabilityOnUseFinish(ItemStack weaponStack, EquipmentSlot type, LivingEntity user)
+	public boolean consumeAnointmentDurabilityOnUseFinish(ItemStack stack, EquipmentSlot slot, LivingEntity user)
 	{
-		boolean didConsume = false;
-		List<Anointment> removedAnointments = new ArrayList<Anointment>();
+		boolean consumed = false;
+		List<Anointment> toRemove = new ArrayList<>();
+
 		for (Entry<Anointment, AnointmentData> entry : anointments.entrySet())
 		{
-			Anointment annointment = entry.getKey();
-			if (annointment.consumeOnUseFinish())
+			Anointment ann = entry.getKey();
+			if (ann.consumeOnUseFinish())
 			{
 				AnointmentData data = entry.getValue();
 				data.damage(1);
-				didConsume = true;
+				consumed = true;
 				if (data.isMaxDamage())
-				{
-					removedAnointments.add(annointment);
-				}
+					toRemove.add(ann);
 			}
 		}
 
-		for (Anointment anointment : removedAnointments)
-		{
-			removeAnointment(weaponStack, type, anointment, user);
-		}
-
-		return didConsume;
+		toRemove.forEach(ann -> removeAnointment(stack, slot, ann, user));
+		return consumed;
 	}
 
-	public boolean consumeAnointmentDurabilityOnHarvest(ItemStack weaponStack, EquipmentSlot type, LivingEntity user)
+	public boolean consumeAnointmentDurabilityOnHarvest(ItemStack stack, EquipmentSlot slot, LivingEntity user)
 	{
-		boolean didConsume = false;
-		List<Anointment> removedAnointments = new ArrayList<Anointment>();
+		boolean consumed = false;
+		List<Anointment> toRemove = new ArrayList<>();
+
 		for (Entry<Anointment, AnointmentData> entry : anointments.entrySet())
 		{
-			Anointment annointment = entry.getKey();
-			if (annointment.consumeOnHarvest())
+			Anointment ann = entry.getKey();
+			if (ann.consumeOnHarvest())
 			{
 				AnointmentData data = entry.getValue();
 				data.damage(1);
-				didConsume = true;
+				consumed = true;
 				if (data.isMaxDamage())
-				{
-					removedAnointments.add(annointment);
-				}
+					toRemove.add(ann);
 			}
 		}
 
-		for (Anointment anointment : removedAnointments)
-		{
-			removeAnointment(weaponStack, type, anointment, user);
-		}
-
-		return didConsume;
+		toRemove.forEach(ann -> removeAnointment(stack, slot, ann, user));
+		return consumed;
 	}
 
-	public boolean consumeAnointmentDurability(ItemStack stack, EquipmentSlot type, Anointment anointment, LivingEntity user)
+	public boolean consumeAnointmentDurability(ItemStack stack, EquipmentSlot slot, Anointment anointment, LivingEntity user)
 	{
 		if (anointments.containsKey(anointment))
 		{
 			AnointmentData data = anointments.get(anointment);
 			data.damage(1);
 			if (data.isMaxDamage())
-			{
-				removeAnointment(stack, type, anointment, user);
-			}
-
+				removeAnointment(stack, slot, anointment, user);
 			return true;
 		}
-
 		return false;
 	}
 
-	// Called when the specified anointment is to be removed. Occurs if the
-	// anointment runs out of uses or if removed via another source.
-	public boolean removeAnointment(ItemStack weaponStack, EquipmentSlot type, Anointment anointment, LivingEntity user)
+	public boolean removeAnointment(ItemStack stack, EquipmentSlot slot, Anointment anointment, LivingEntity user)
 	{
 		anointments.remove(anointment);
-		anointment.removeAnointment(this, weaponStack, type);
+		anointment.removeAnointment(this, stack, slot);
 
-		SoundEvent soundevent = SoundEvents.SPLASH_POTION_BREAK;
-		user.level.playSound(null, user.blockPosition(), soundevent, SoundSource.BLOCKS, 1.0F, 1.0F);
+		SoundEvent sound = SoundEvents.SPLASH_POTION_BREAK;
+		user.level.playSound(null, user.blockPosition(), sound, SoundSource.BLOCKS, 1.0F, 1.0F);
 
-		if (user.level instanceof ServerLevel)
+		if (user.level instanceof ServerLevel server)
 		{
-			ServerLevel server = (ServerLevel) user.level;
-			server.sendParticles(ParticleTypes.LARGE_SMOKE, user.getX(), user.getY() + 1, user.getZ(), 16, 0.3, 0, 0.3, 0);
+			server.sendParticles(
+					ParticleTypes.LARGE_SMOKE,
+					user.getX(), user.getY() + 1, user.getZ(),
+					16, 0.3, 0, 0.3, 0
+			);
 		}
-
 		return true;
 	}
 
@@ -221,87 +192,77 @@ public class AnointmentHolder
 		return ImmutableMap.copyOf(anointments);
 	}
 
-	public double getAdditionalDamage(Player player, ItemStack weapon, double damage, LivingEntity attacked)
+	public double getAdditionalDamage(Player player, ItemStack weapon, double baseDamage, LivingEntity target)
 	{
-		double additionalDamage = 0;
-		for (Entry<Anointment, AnointmentData> entry : anointments.entrySet())
-		{
-			Anointment.IDamageProvider prov = entry.getKey().getDamageProvider();
-			if (prov != null)
-			{
-				additionalDamage += prov.getAdditionalDamage(player, weapon, damage, this, attacked, entry.getKey(), entry.getValue().getLevel());
-			}
-		}
-		return additionalDamage;
+		return anointments.entrySet().stream()
+				.mapToDouble(entry -> {
+					Anointment.IDamageProvider prov = entry.getKey().getDamageProvider();
+					return prov == null
+							? 0
+							: prov.getAdditionalDamage(player, weapon, baseDamage, this, target, entry.getKey(), entry.getValue().getLevel());
+				}).sum();
 	}
 
 	public CompoundTag serialize()
 	{
-		CompoundTag compound = new CompoundTag();
-		ListTag statList = new ListTag();
-		anointments.forEach((k, v) -> {
-			CompoundTag anoint = new CompoundTag();
-			anoint.putString("key", k.getKey().toString());
-			anoint.putInt("level", v.getLevel());
-			anoint.putInt("damage", v.getDamage());
-			anoint.putInt("max_damage", v.getMaxDamage());
-			statList.add(anoint);
-		});
-		compound.put("anointments", statList);
-//
-//		compound.putInt("maxPoints", maxPoints);
+		CompoundTag tag = new CompoundTag();
+		ListTag list = new ListTag();
 
-		return compound;
+		anointments.forEach((ann, data) -> {
+			CompoundTag t = new CompoundTag();
+			t.putString("key", ann.getKey().toString());
+			t.putInt("level", data.getLevel());
+			t.putInt("damage", data.getDamage());
+			t.putInt("max_damage", data.getMaxDamage());
+			list.add(t);
+		});
+
+		tag.put("anointments", list);
+		return tag;
 	}
 
-	public void deserialize(CompoundTag nbt)
+	public void deserialize(CompoundTag tag)
 	{
-		ListTag statList = nbt.getList("anointments", 10);
-		statList.forEach(tag -> {
-			if (!(tag instanceof CompoundTag))
-				return;
-			Anointment anoint = AnointmentRegistrar.ANOINTMENT_MAP.getOrDefault(new ResourceLocation(((CompoundTag) tag).getString("key")), Anointment.DUMMY);
-//			LivingUpgrade upgrade = LivingArmorRegistrar.UPGRADE_MAP.getOrDefault(new ResourceLocation(((CompoundNBT) tag).getString("key")), LivingUpgrade.DUMMY);
-			if (anoint == Anointment.DUMMY)
-				return;
-//			double experience = ((CompoundNBT) tag).getDouble("exp");
-			AnointmentData data = new AnointmentData(((CompoundTag) tag).getInt("level"), ((CompoundTag) tag).getInt("damage"), ((CompoundTag) tag).getInt("max_damage"));
-			anointments.put(anoint, data);
+		ListTag list = tag.getList("anointments", 10);
+		list.forEach(element -> {
+			if (!(element instanceof CompoundTag t)) return;
+			ResourceLocation id = new ResourceLocation(t.getString("key"));
+			Anointment ann = AnointmentRegistrar.ANOINTMENT_MAP.getOrDefault(id, Anointment.DUMMY);
+			if (ann == Anointment.DUMMY) return;
+
+			AnointmentData data = new AnointmentData(
+					t.getInt("level"),
+					t.getInt("damage"),
+					t.getInt("max_damage")
+			);
+			anointments.put(ann, data);
 		});
-//
-//		maxPoints = nbt.getInt("maxPoints");
 	}
 
-	public static AnointmentHolder fromNBT(CompoundTag holderTag)
+	public static AnointmentHolder fromNBT(CompoundTag tag)
 	{
-		AnointmentHolder holder = new AnointmentHolder();
-		holder.deserialize(holderTag);
-		return holder;
+		AnointmentHolder h = new AnointmentHolder();
+		h.deserialize(tag);
+		return h;
 	}
 
 	public static AnointmentHolder fromItemStack(ItemStack stack)
 	{
-		CompoundTag nbtTag = stack.getTag();
-		if (nbtTag == null)
-		{
-			return null;
-		}
-
-		CompoundTag holderTag = nbtTag.getCompound(Constants.NBT.ANOINTMENTS);
-		if (holderTag != null)
-		{
-			return fromNBT(holderTag);
-		}
-
-		return null;
+		CompoundTag tag = stack.getTag();
+		if (tag == null || !tag.contains(Constants.NBT.ANOINTMENTS, 10)) return null;
+		return fromNBT(tag.getCompound(Constants.NBT.ANOINTMENTS));
 	}
 
 	public void toItemStack(ItemStack stack)
 	{
-		CompoundTag nbtTag = stack.getOrCreateTag();
-		CompoundTag childTag = this.serialize();
+		CompoundTag root = stack.getOrCreateTag();
+		root.put(Constants.NBT.ANOINTMENTS, serialize());
+	}
 
-		nbtTag.put(Constants.NBT.ANOINTMENTS, childTag);
+	public static AnointmentHolder fromPlayer(Player player, InteractionHand hand, boolean create)
+	{
+		AnointmentHolder h = fromItemStack(player.getItemInHand(hand));
+		return h == null && create ? new AnointmentHolder() : h;
 	}
 
 	public static AnointmentHolder fromPlayer(Player player, InteractionHand hand)
@@ -309,39 +270,28 @@ public class AnointmentHolder
 		return fromPlayer(player, hand, false);
 	}
 
-	public static AnointmentHolder fromPlayer(Player player, InteractionHand hand, boolean createNew)
-	{
-		ItemStack heldItem = player.getItemInHand(hand);
-
-		AnointmentHolder holder = fromItemStack(heldItem);
-		return holder == null && createNew ? new AnointmentHolder() : holder;
-	}
-
 	public static void toPlayer(Player player, InteractionHand hand, AnointmentHolder holder)
 	{
-		ItemStack heldItem = player.getItemInHand(hand);
-		holder.toItemStack(heldItem);
+		holder.toItemStack(player.getItemInHand(hand));
 	}
 
 	public static void appendAnointmentTooltip(AnointmentHolder holder, List<Component> tooltip)
 	{
-		if (holder != null)
-		{
-//			System.out.println("Holder is not null. Size: " + holder.getAnointments().size());
-//			if (trainable)
-//				tooltip.add(new TranslationTextComponent("tooltip.bloodmagic.livingarmour.upgrade.points", stats.getUsedPoints(), stats.getMaxPoints()).mergeStyle(TextFormatting.GOLD));
+		if (holder == null) return;
 
-			holder.getAnointments().forEach((k, v) -> {
-
-//				if (k.getLevel(v.intValue()) <= 0)
-//					return;
-				boolean sneaking = Screen.hasShiftDown();
-//				if (!InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), 340) || k.getNextRequirement(v) == 0)
-				if (!sneaking)
-					tooltip.add(new TranslatableComponent("%s %s", new TranslatableComponent(k.getTranslationKey()), new TranslatableComponent("enchantment.level." + v.getLevel())));
-				else
-					tooltip.add(new TranslatableComponent("%s %s", new TranslatableComponent(k.getTranslationKey()), (": (" + v.getDamageString() + ")")));
-			});
-		}
+		boolean sneaking = Screen.hasShiftDown();
+		holder.getAnointments().forEach((ann, data) -> {
+			Component name = Component.translatable(ann.getTranslationKey());
+			Component level = Component.translatable("enchantment.level." + data.getLevel());
+			if (!sneaking)
+			{
+				tooltip.add(Component.translatable("%s %s", name, level));
+			}
+			else
+			{
+				Component dmg = Component.literal(" (" + data.getDamageString() + ")");
+				tooltip.add(Component.translatable("%s%s", name, dmg));
+			}
+		});
 	}
 }

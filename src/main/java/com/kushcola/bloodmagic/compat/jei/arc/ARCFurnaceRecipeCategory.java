@@ -1,115 +1,124 @@
 package com.kushcola.bloodmagic.compat.jei.arc;
 
-import java.util.List;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-
-import mezz.jei.api.constants.VanillaTypes;
-import mezz.jei.api.gui.IRecipeLayout;
-import mezz.jei.api.gui.drawable.IDrawable;
-import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
-import mezz.jei.api.helpers.IGuiHelper;
-import mezz.jei.api.ingredients.IIngredients;
-import mezz.jei.api.recipe.category.IRecipeCategory;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.SmeltingRecipe;
-import net.minecraftforge.fluids.FluidStack;
 import com.kushcola.bloodmagic.BloodMagic;
 import com.kushcola.bloodmagic.common.block.BloodMagicBlocks;
 import com.kushcola.bloodmagic.common.tags.BloodMagicTags;
 import com.kushcola.bloodmagic.util.Constants;
 import com.kushcola.bloodmagic.util.handler.event.ClientHandler;
 
-public class ARCFurnaceRecipeCategory implements IRecipeCategory<SmeltingRecipe>
-{
-	private static final int OUTPUT_SLOT = 0;
-	private static final int INPUT_SLOT = 1;
-	private static final int CATALYST_SLOT = 2;
-	public static final ResourceLocation UID = BloodMagic.rl(Constants.Compat.JEI_CATEGORY_ARC + "furnace");
-	public static final ResourceLocation BACKGROUNDRL = BloodMagic.rl("gui/jei/arc.png");
+import com.mojang.blaze3d.vertex.PoseStack;
 
-	@Nonnull
+import mezz.jei.api.constants.VanillaTypes;
+import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.drawable.IDrawable;
+import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
+import mezz.jei.api.helpers.IGuiHelper;
+import mezz.jei.api.recipe.IFocusGroup;
+import mezz.jei.api.recipe.RecipeIngredientRole;
+import mezz.jei.api.recipe.RecipeType;
+import mezz.jei.api.recipe.category.IRecipeCategory;
+
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.SmeltingRecipe;
+import net.minecraftforge.fluids.FluidStack;
+
+public class ARCFurnaceRecipeCategory implements IRecipeCategory<SmeltingRecipe> {
+	public static final RecipeType<SmeltingRecipe> TYPE = RecipeType.create(
+			BloodMagic.MODID,
+			Constants.Compat.JEI_CATEGORY_ARC + "furnace",
+			SmeltingRecipe.class
+	);
+	private static final ResourceLocation BACKGROUND_RL =
+			BloodMagic.rl("gui/jei/arc.png");
+
 	private final IDrawable background;
 	private final IDrawable icon;
-//	@Nonnull
-//	private final ICraftingGridHelper craftingGridHelper;
 
-	public ARCFurnaceRecipeCategory(IGuiHelper guiHelper)
-	{
-		icon = guiHelper.createDrawableIngredient(new ItemStack(BloodMagicBlocks.ALCHEMICAL_REACTION_CHAMBER.get()));
-		background = guiHelper.createDrawable(BACKGROUNDRL, 0, 0, 157, 43);
-//		craftingGridHelper = guiHelper.createCraftingGridHelper(INPUT_SLOT);
+	public ARCFurnaceRecipeCategory(IGuiHelper guiHelper) {
+		this.icon = guiHelper.createDrawableIngredient(
+				VanillaTypes.ITEM_STACK,
+				new ItemStack(BloodMagicBlocks.ALCHEMICAL_REACTION_CHAMBER.get())
+		);
+		this.background = guiHelper.createDrawable(BACKGROUND_RL, 0, 0, 157, 43);
 	}
 
 	@Nonnull
 	@Override
-	public ResourceLocation getUid()
-	{
-		return UID;
+	public RecipeType<SmeltingRecipe> getRecipeType() {
+		return TYPE;
 	}
 
 	@Nonnull
 	@Override
-	public Component getTitle()
-	{
-		return new TranslatableComponent("jei.bloodmagic.recipe.arcfurnace");
+	public Component getTitle() {
+		return Component.translatable("jei.bloodmagic.recipe.arcfurnace");
 	}
 
 	@Nonnull
 	@Override
-	public IDrawable getBackground()
-	{
+	public IDrawable getBackground() {
 		return background;
 	}
 
 	@Nullable
 	@Override
-	public IDrawable getIcon()
-	{
+	public IDrawable getIcon() {
 		return icon;
 	}
 
 	@Override
-	public void setRecipe(@Nonnull IRecipeLayout recipeLayout, @Nonnull SmeltingRecipe recipe, @Nonnull IIngredients ingredients)
-	{
-		IGuiItemStackGroup guiItemStacks = recipeLayout.getItemStacks();
+	public void setRecipe(
+			@Nonnull IRecipeLayoutBuilder builder,
+			@Nonnull SmeltingRecipe recipe,
+			@Nonnull IFocusGroup focuses
+	) {
+		// Output slot
+		builder.addSlot(RecipeIngredientRole.OUTPUT, 53, 16)
+				.addItemStack(recipe.getResultItem());
 
-		recipeLayout.getItemStacks().init(OUTPUT_SLOT, false, 53, 16);
-		recipeLayout.getItemStacks().init(INPUT_SLOT, true, 0, 5);
-		recipeLayout.getItemStacks().init(CATALYST_SLOT, true, 21, 16);
+		// Input slot (first ingredient)
+		builder.addSlot(RecipeIngredientRole.INPUT, 0, 5)
+				.addIngredients(recipe.getIngredients().get(0));
 
-		guiItemStacks.set(ingredients);
+		// Catalyst slot (tools tagged as ARC_TOOL_FURNACE)
+		builder.addSlot(RecipeIngredientRole.CATALYST, 21, 16)
+				.addIngredients(Ingredient.of(BloodMagicTags.ARC_TOOL_FURNACE));
 	}
 
 	@Override
-	public Class<? extends SmeltingRecipe> getRecipeClass()
-	{
-		return SmeltingRecipe.class;
-	}
-
-	@Override
-	public void setIngredients(SmeltingRecipe recipe, IIngredients ingredients)
-	{
-		List<Ingredient> inputIngList = recipe.getIngredients();
-		inputIngList.add(Ingredient.of(BloodMagicTags.ARC_TOOL_FURNACE));
-		ingredients.setInputIngredients(inputIngList);
-		ingredients.setOutput(VanillaTypes.ITEM, recipe.getResultItem());
-	}
-
-	@Override
-	public void draw(SmeltingRecipe recipe, PoseStack matrixStack, double mouseX, double mouseY)
-	{
-		FluidStack outputStack = FluidStack.EMPTY;
-		ClientHandler.handleGuiTank(matrixStack, outputStack, outputStack.getAmount(), 140, 7, 16, 36, 157, 6, 18, 38, (int) mouseX, (int) mouseY, BACKGROUNDRL.toString(), null);
-
-		FluidStack inputStack = FluidStack.EMPTY;
-		ClientHandler.handleGuiTank(matrixStack, inputStack, inputStack.getAmount(), 1, 26, 16, 16, 175, 26, 18, 18, (int) mouseX, (int) mouseY, BACKGROUNDRL.toString(), null);
+	public void draw(
+			@Nonnull SmeltingRecipe recipe,
+			@Nonnull IRecipeSlotsView slotsView,
+			@Nonnull PoseStack matrixStack,
+			double mouseX,
+			double mouseY
+	) {
+		FluidStack empty = FluidStack.EMPTY;
+		// Right-hand tank
+		ClientHandler.handleGuiTank(
+				matrixStack,
+				empty, empty.getAmount(),
+				140, 7, 16, 36,
+				157, 6, 18, 38,
+				(int) mouseX, (int) mouseY,
+				BACKGROUND_RL.toString(),
+				null
+		);
+		// Left-hand tank
+		ClientHandler.handleGuiTank(
+				matrixStack,
+				empty, empty.getAmount(),
+				1, 26, 16, 16,
+				175, 26, 18, 18,
+				(int) mouseX, (int) mouseY,
+				BACKGROUND_RL.toString(),
+				null
+		);
 	}
 }

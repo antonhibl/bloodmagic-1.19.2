@@ -1,8 +1,14 @@
 package com.kushcola.bloodmagic.anointment;
 
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 import com.google.common.collect.HashMultimap;
@@ -18,28 +24,25 @@ import com.google.gson.JsonParseException;
 import com.google.gson.annotations.JsonAdapter;
 
 import com.kushcola.bloodmagic.core.living.LivingUpgrade;
-import com.mojang.serialization.Codec;
-import net.minecraft.core.Holder;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.Util;
+import net.minecraft.core.Registry;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.Util;
-import net.minecraft.core.Registry;
-import net.minecraftforge.registries.IForgeRegistry;
-import net.minecraftforge.registries.tags.ITagManager;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-
+/**
+ * Represents one “anointment” (bonus tree) for weapons/tools.
+ */
 @JsonAdapter(Anointment.Deserializer.class)
-public class Anointment implements IForgeRegistry<Anointment> {
+public class Anointment
+{
 	public static final Anointment DUMMY = new Anointment(new ResourceLocation("dummy"));
 
 	private final ResourceLocation key;
@@ -61,22 +64,17 @@ public class Anointment implements IForgeRegistry<Anointment> {
 
 	public Anointment withBonusSet(String id, Consumer<List<Number>> modifiers)
 	{
-//		List<Number> values = DefaultedList.of();
-
-		List<Number> values = new ArrayList<Number>();
+		List<Number> values = new ArrayList<>();
 		modifiers.accept(values);
-
 		bonuses.put(id, new Bonus(id, values));
 		return this;
 	}
 
 	public Number getBonusValue(String id, int level)
 	{
-		List<Number> modifiers = bonuses.getOrDefault(id, Bonus.DEFAULT).modifiers;
-		if (modifiers.isEmpty() || level == 0)
-			return 0;
-
-		return level <= modifiers.size() ? modifiers.get(level - 1) : modifiers.get(modifiers.size() - 1);
+		List<Number> mods = bonuses.getOrDefault(id, Bonus.DEFAULT).modifiers;
+		if (mods.isEmpty() || level <= 0) return 0;
+		return level <= mods.size() ? mods.get(level - 1) : mods.get(mods.size() - 1);
 	}
 
 	public ResourceLocation getKey()
@@ -92,106 +90,92 @@ public class Anointment implements IForgeRegistry<Anointment> {
 
 	public boolean applyAnointment(AnointmentHolder holder, ItemStack stack, int level)
 	{
-		if (level < 0)
-		{
-			return false;
-		}
-
-		IAttributeProvider prov = this.getAttributeProvider();
-		if (prov == null)
-		{
-			return true;
-		}
+		if (level < 0) return false;
+		IAttributeProvider prov = this.attributeProvider;
+		if (prov == null) return true;
 
 		Multimap<Attribute, AttributeModifier> modifiers = HashMultimap.create();
 		modifiers.putAll(stack.getItem().getAttributeModifiers(EquipmentSlot.MAINHAND, stack));
 
-		this.getAttributeProvider().handleAttributes(holder, modifiers, UUID.nameUUIDFromBytes(this.getKey().toString().getBytes()), this, level);
+		prov.handleAttributes(
+				holder,
+				modifiers,
+				UUID.nameUUIDFromBytes(this.key.toString().getBytes()),
+				this,
+				level
+		);
 
-		for (Entry<Attribute, AttributeModifier> entry : modifiers.entries())
+		for (Entry<Attribute, AttributeModifier> e : modifiers.entries())
 		{
-			stack.addAttributeModifier(entry.getKey(), entry.getValue(), EquipmentSlot.MAINHAND);
+			stack.addAttributeModifier(e.getKey(), e.getValue(), EquipmentSlot.MAINHAND);
 		}
-
 		return true;
 	}
 
 	public boolean removeAnointment(AnointmentHolder holder, ItemStack stack, EquipmentSlot slot)
 	{
-		IAttributeProvider provider = this.getAttributeProvider();
-		if (provider != null)
+		IAttributeProvider prov = this.attributeProvider;
+		if (prov == null) return false;
+
+		Multimap<Attribute, AttributeModifier> modifiers = HashMultimap.create();
+		prov.handleAttributes(holder, modifiers, UUID.nameUUIDFromBytes(this.key.toString().getBytes()), this, 1);
+
+		if (stack.hasTag() && stack.getTag().contains("AttributeModifiers", 9))
 		{
-			Multimap<Attribute, AttributeModifier> modifiers = HashMultimap.create();
-			this.getAttributeProvider().handleAttributes(holder, modifiers, UUID.nameUUIDFromBytes(this.getKey().toString().getBytes()), this, 1);
+			ListTag listnbt = stack.getTag().getList("AttributeModifiers", 10);
+			List<Integer> toRemove = new ArrayList<>();
 
-			if (stack.hasTag() && stack.getTag().contains("AttributeModifiers", 9))
+			for (int i = 0; i < listnbt.size(); i++)
 			{
-//		         multimap = HashMultimap.create();
-				ListTag listnbt = stack.getTag().getList("AttributeModifiers", 10);
-				List<Integer> removeList = new ArrayList<Integer>();
-
-				for (int i = 0; i < listnbt.size(); i++)
+				CompoundTag t = listnbt.getCompound(i);
+				if (!t.contains("Slot", 8) || t.getString("Slot").equals(slot.getName()))
 				{
-					CompoundTag compoundnbt = listnbt.getCompound(i);
-					if (!compoundnbt.contains("Slot", 8) || compoundnbt.getString("Slot").equals(slot.getName()))
+					Optional<Attribute> attr = Registry.ATTRIBUTE
+							.getOptional(ResourceLocation.tryParse(t.getString("AttributeName")));
+					if (attr.isPresent())
 					{
-						Optional<Attribute> optional = Registry.ATTRIBUTE.getOptional(ResourceLocation.tryParse(compoundnbt.getString("AttributeName")));
-						if (optional.isPresent())
+						AttributeModifier loaded = AttributeModifier.load(t);
+						if (loaded != null && loaded.getId().getLeastSignificantBits() != 0L)
 						{
-							AttributeModifier attributemodifier = AttributeModifier.load(compoundnbt);
-							if (attributemodifier != null && attributemodifier.getId().getLeastSignificantBits() != 0L && attributemodifier.getId().getMostSignificantBits() != 0L)
+							for (Entry<Attribute, AttributeModifier> e : modifiers.entries())
 							{
-								for (Entry<Attribute, AttributeModifier> entry : modifiers.entries())
+								if (e.getKey().equals(attr.get()) && e.getValue().getId().equals(loaded.getId()))
 								{
-									if (entry.getKey().equals(optional.get()) && entry.getValue().getId().equals(attributemodifier.getId()))
-									{
-										removeList.add(i);
-									}
+									toRemove.add(i);
 								}
-//								multimap.put(optional.get(), attributemodifier);
 							}
 						}
 					}
 				}
-
-				for (int index : removeList)
-				{
-					listnbt.remove(index);
-				}
-
-				if (removeList.size() >= 1)
-				{
-					stack.getTag().put("AttributeModifiers", listnbt);
-					if (listnbt.isEmpty())
-					{
-						stack.getTag().remove("AttributeModifiers");
-					}
-				}
 			}
-
-//			for (Entry<Attribute, AttributeModifier> entry : modifiers.entries())
-//			{
-//
-//			}
+			for (int idx : toRemove) listnbt.remove(idx);
+			if (toRemove.size() > 0)
+			{
+				stack.getTag().put("AttributeModifiers", listnbt);
+				if (listnbt.isEmpty())
+					stack.getTag().remove("AttributeModifiers");
+			}
 		}
 		return false;
 	}
 
-	public boolean isCompatible(ResourceLocation otherUpgrade)
+	public boolean isCompatible(ResourceLocation other)
 	{
-		return !incompatible.contains(otherUpgrade);
+		return !incompatible.contains(other);
 	}
 
-	public Anointment addIncompatibility(ResourceLocation key, ResourceLocation... otherKeys)
+	public Anointment addIncompatibility(ResourceLocation one, ResourceLocation... others)
 	{
-		incompatible.add(key);
-		Collections.addAll(incompatible, otherKeys);
+		incompatible.add(one);
+		Collections.addAll(incompatible, others);
 		return this;
 	}
 
 	public String getTranslationKey()
 	{
-		return translationKey == null ? translationKey = Util.makeDescriptionId("anointment", key) : translationKey;
+		if (translationKey == null)
+			translationKey = Util.makeDescriptionId("anointment", key);
+		return translationKey;
 	}
 
 	public Anointment setConsumeOnAttack()
@@ -199,255 +183,105 @@ public class Anointment implements IForgeRegistry<Anointment> {
 		this.consumeOnAttack = true;
 		return this;
 	}
-
-	public boolean consumeOnAttack()
-	{
-		return this.consumeOnAttack;
-	}
+	public boolean consumeOnAttack() { return consumeOnAttack; }
 
 	public Anointment setConsumeOnUseFinish()
 	{
 		this.consumeOnUseFinish = true;
 		return this;
 	}
-
-	public boolean consumeOnUseFinish()
-	{
-		return this.consumeOnUseFinish;
-	}
+	public boolean consumeOnUseFinish() { return consumeOnUseFinish; }
 
 	public Anointment setConsumeOnHarvest()
 	{
 		this.consumeOnHarvest = true;
 		return this;
 	}
+	public boolean consumeOnHarvest() { return consumeOnHarvest; }
 
-	public boolean consumeOnHarvest()
+	public Anointment withAttributeProvider(IAttributeProvider p)
 	{
-		return this.consumeOnHarvest;
-	}
-
-	public Anointment withAttributeProvider(IAttributeProvider attributeProvider)
-	{
-		this.attributeProvider = attributeProvider;
+		this.attributeProvider = p;
 		return this;
 	}
+	public IAttributeProvider getAttributeProvider() { return attributeProvider; }
 
-	public IAttributeProvider getAttributeProvider()
+	public Anointment withDamageProvider(IDamageProvider p)
 	{
-		return attributeProvider;
-	}
-
-	public Anointment withDamageProvider(IDamageProvider damageProvider)
-	{
-		this.damageProvider = damageProvider;
+		this.damageProvider = p;
 		return this;
 	}
-
-	public IDamageProvider getDamageProvider()
-	{
-		return damageProvider;
-	}
-
-	@Override
-	public ResourceKey<Registry<Anointment>> getRegistryKey() {
-		return null;
-	}
-
-	@Override
-	public ResourceLocation getRegistryName() {
-		return null;
-	}
-
-	@Override
-	public void register(String key, Anointment value) {
-
-	}
-
-	@Override
-	public void register(ResourceLocation key, Anointment value) {
-
-	}
-
-	@Override
-	public boolean containsKey(ResourceLocation key) {
-		return false;
-	}
-
-	@Override
-	public boolean containsValue(Anointment value) {
-		return false;
-	}
-
-	@Override
-	public boolean isEmpty() {
-		return false;
-	}
-
-	@Override
-	public @Nullable Anointment getValue(ResourceLocation key) {
-		return null;
-	}
-
-	@Override
-	public @Nullable ResourceLocation getKey(Anointment value) {
-		return null;
-	}
-
-	@Override
-	public @Nullable ResourceLocation getDefaultKey() {
-		return null;
-	}
-
-	@Override
-	public @NotNull Optional<ResourceKey<Anointment>> getResourceKey(Anointment value) {
-		return Optional.empty();
-	}
-
-	@Override
-	public @NotNull Set<ResourceLocation> getKeys() {
-		return null;
-	}
-
-	@Override
-	public @NotNull Collection<Anointment> getValues() {
-		return null;
-	}
-
-	@Override
-	public @NotNull Set<Entry<ResourceKey<Anointment>, Anointment>> getEntries() {
-		return null;
-	}
-
-	@Override
-	public @NotNull Codec<Anointment> getCodec() {
-		return null;
-	}
-
-	@Override
-	public @NotNull Optional<Holder<Anointment>> getHolder(ResourceKey<Anointment> key) {
-		return Optional.empty();
-	}
-
-	@Override
-	public @NotNull Optional<Holder<Anointment>> getHolder(ResourceLocation location) {
-		return Optional.empty();
-	}
-
-	@Override
-	public @NotNull Optional<Holder<Anointment>> getHolder(Anointment value) {
-		return Optional.empty();
-	}
-
-	@Override
-	public @Nullable ITagManager<Anointment> tags() {
-		return null;
-	}
-
-	@Override
-	public @NotNull Optional<Holder.Reference<Anointment>> getDelegate(ResourceKey<Anointment> rkey) {
-		return Optional.empty();
-	}
-
-	@Override
-	public Holder.@NotNull Reference<Anointment> getDelegateOrThrow(ResourceKey<Anointment> rkey) {
-		return null;
-	}
-
-	@Override
-	public @NotNull Optional<Holder.Reference<Anointment>> getDelegate(ResourceLocation key) {
-		return Optional.empty();
-	}
-
-	@Override
-	public Holder.@NotNull Reference<Anointment> getDelegateOrThrow(ResourceLocation key) {
-		return null;
-	}
-
-	@Override
-	public @NotNull Optional<Holder.Reference<Anointment>> getDelegate(Anointment value) {
-		return Optional.empty();
-	}
-
-	@Override
-	public Holder.@NotNull Reference<Anointment> getDelegateOrThrow(Anointment value) {
-		return null;
-	}
-
-	@Override
-	public <T> T getSlaveMap(ResourceLocation slaveMapName, Class<T> type) {
-		return null;
-	}
-
-	@NotNull
-	@Override
-	public Iterator<Anointment> iterator() {
-		return null;
-	}
+	public IDamageProvider getDamageProvider() { return damageProvider; }
 
 	public interface IAttributeProvider
 	{
-		void handleAttributes(AnointmentHolder holder, Multimap<Attribute, AttributeModifier> modifiers, UUID uuid, Anointment anoint, int level);
+		void handleAttributes(
+				AnointmentHolder holder,
+				Multimap<Attribute, AttributeModifier> modifiers,
+				UUID uuid,
+				Anointment anoint,
+				int level
+		);
 	}
 
 	public interface IDamageProvider
 	{
-		double getAdditionalDamage(Player player, ItemStack weapon, double damage, AnointmentHolder holder, LivingEntity attacked, Anointment anoint, int level);
+		double getAdditionalDamage(
+				Player player,
+				ItemStack weapon,
+				double damage,
+				AnointmentHolder holder,
+				LivingEntity target,
+				Anointment anoint,
+				int level
+		);
 	}
 
 	public static class Bonus
 	{
 		private static final Bonus DEFAULT = new Bonus("null", Collections.emptyList());
-
 		private final String id;
 		private final List<Number> modifiers;
-
-		public Bonus(String id, List<Number> modifiers)
+		public Bonus(String id, List<Number> mods)
 		{
 			this.id = id;
-			this.modifiers = modifiers;
+			this.modifiers = mods;
 		}
-
-		public String getId()
-		{
-			return id;
-		}
+		public String getId() { return id; }
 	}
 
 	public static class Deserializer implements JsonDeserializer<Anointment>
 	{
 		@Override
-		public Anointment deserialize(JsonElement element, Type typeOfT, JsonDeserializationContext context)
-				throws JsonParseException
+		public Anointment deserialize(
+				JsonElement element,
+				Type typeOfT,
+				JsonDeserializationContext context
+		) throws JsonParseException
 		{
 			JsonObject json = element.getAsJsonObject();
 			ResourceLocation id = new ResourceLocation(json.getAsJsonPrimitive("id").getAsString());
-			List<LivingUpgrade.Level> levels = context.deserialize(json.getAsJsonArray("levels"), new TypeToken<List<LivingUpgrade.Level>>()
-			{
-			}.getType());
-			boolean negative = json.has("negative") && json.getAsJsonPrimitive("negative").getAsBoolean();
 
-			Anointment upgrade = new Anointment(id);
-//			if (negative)
-//				upgrade.asDowngrade();
+			// Deserialize LivingUpgrade.Level list
+			List<LivingUpgrade.Level> levels = context.deserialize(
+					json.getAsJsonArray("levels"),
+					new TypeToken<List<LivingUpgrade.Level>>() {}.getType()
+			);
 
-//			if (json.has("incompatibilities"))
-//			{
-//				String[] incompatibilities = context.deserialize(json.getAsJsonArray("incompatibilities"), String[].class);
-//				for (String incompatible : incompatibilities)
-//					upgrade.addIncompatibility(new ResourceLocation(incompatible));
-//			}
+			Anointment result = new Anointment(id);
 
 			if (json.has("bonuses"))
 			{
-				Map<String, Number[]> bonuses = context.deserialize(json.getAsJsonObject("bonuses"), new TypeToken<Map<String, Number[]>>()
-				{
-				}.getType());
-				bonuses.forEach((k, v) -> upgrade.withBonusSet(k, numbers -> Collections.addAll(numbers, v)));
+				Map<String, Number[]> bonusMap = context.deserialize(
+						json.getAsJsonObject("bonuses"),
+						new TypeToken<Map<String, Number[]>>() {}.getType()
+				);
+				bonusMap.forEach((k, v) ->
+						result.withBonusSet(k, list -> Collections.addAll(list, v))
+				);
 			}
 
-			return upgrade;
+			return result;
 		}
 	}
-
 }

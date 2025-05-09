@@ -2,8 +2,6 @@ package com.kushcola.bloodmagic;
 
 import java.util.List;
 
-import com.kushcola.bloodmagic.impl.BloodMagicAPI;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -18,123 +16,111 @@ import net.minecraftforge.fml.event.config.ModConfigEvent;
 import com.kushcola.bloodmagic.client.hud.ElementRegistry;
 
 @EventBusSubscriber(modid = BloodMagic.MODID, bus = Bus.MOD)
-public class ConfigManager
-{
+public class ConfigManager {
 	private static final Logger LOGGER = LogManager.getLogger();
 
 	public static final CommonConfig COMMON;
 	public static final ForgeConfigSpec COMMON_SPEC;
 
-	static
-	{
-		final Pair<CommonConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(CommonConfig::new);
-		COMMON_SPEC = specPair.getRight();
-		COMMON = specPair.getLeft();
+	static {
+		var pair = new ForgeConfigSpec.Builder().configure(CommonConfig::new);
+		COMMON_SPEC = pair.getRight();
+		COMMON      = pair.getLeft();
 	}
 
-	public static class CommonConfig
-	{
+	public static class CommonConfig {
 		public final ConfigValue<List<? extends String>> wellOfSuffering;
 		public final ForgeConfigSpec.IntValue sacrificialDaggerConversion;
 		public final ConfigValue<List<? extends String>> sacrificialValues;
 		public final ForgeConfigSpec.BooleanValue makeDungeonRitualCreativeOnly;
 
-		CommonConfig(ForgeConfigSpec.Builder builder)
-		{
-			builder.comment("Stops the listed entities from being used in the Well of Suffering.", "Use the registry name of the entity. Vanilla entities do not require the modid.").push("Blacklist");
-			wellOfSuffering = builder.defineList("wellOfSuffering", ImmutableList.of(), obj -> true);
-
+		CommonConfig(ForgeConfigSpec.Builder builder) {
+			builder.comment(
+					"Stops the listed entities from being used in the Well of Suffering.",
+					"Use the registry name of the entity. Vanilla entities do not require the modid."
+			).push("Blacklist");
+			wellOfSuffering = builder.defineList("wellOfSuffering",
+					ImmutableList.of(),
+					obj -> true
+			);
 			builder.pop();
 
-			builder.comment("Amount of LP the Sacrificial Dagger should provide for each damage dealt.").push("Config Values");
-			sacrificialDaggerConversion = builder.defineInRange("sacrificialDaggerConversion", 100, 0, 10000);
-//			builder.pop();
+			builder.comment(
+					"Amount of LP the Sacrificial Dagger should provide for each damage dealt."
+			).push("Config Values");
+			sacrificialDaggerConversion = builder.defineInRange(
+					"sacrificialDaggerConversion", 100, 0, 10000
+			);
 
-			builder.comment("Declares the amount of LP gained per HP sacrificed for the given entity.", "Setting the value to 0 will blacklist it.", "Use the registry name of the entity followed by a ';' and then the value you want.", "Vanilla entities do not require the modid.");
-			sacrificialValues = builder.defineList("sacrificialValues", ImmutableList.of("villager;100", "slime;15", "enderman;10", "cow;100", "chicken;100", "horse;100", "sheep;100", "wolf;100", "ocelot;100", "pig;100", "rabbit;100"), obj -> true);
+			builder.comment(
+					"Declares the amount of LP gained per HP sacrificed for the given entity.",
+					"Setting the value to 0 will blacklist it.",
+					"Use the registry name of the entity followed by ';' and then the value you want.",
+					"Vanilla entities do not require the modid."
+			);
+			sacrificialValues = builder.defineList("sacrificialValues",
+					ImmutableList.of(
+							"villager;100", "slime;15", "enderman;10",
+							"cow;100", "chicken;100", "horse;100",
+							"sheep;100", "wolf;100", "ocelot;100",
+							"pig;100", "rabbit;100"
+					),
+					obj -> true
+			);
 
-			builder.comment("State that the dungeon spawning ritual can only be activated when using a Creative Activation Crystal.", "Used on servers for if you do not trust your players to not destroy other people's bases.");
-			makeDungeonRitualCreativeOnly = builder.define("makeDungeonRitualCreativeOnly", false);
-
+			builder.comment(
+					"Dungeon spawning ritual can only be activated when using a Creative Activation Crystal."
+			);
+			makeDungeonRitualCreativeOnly = builder.define(
+					"makeDungeonRitualCreativeOnly", false
+			);
 			builder.pop();
 		}
 	}
 
 	@SubscribeEvent
-	public static void onCommonReload(ModConfigEvent ev)
-	{
-		if (ev.getConfig().getSpec().equals(COMMON_SPEC))
-		{
-			BloodMagic.handleConfigValues(BloodMagicAPI.INSTANCE);
+	public static void onCommonReload(ModConfigEvent ev) {
+		if (ev.getConfig().getSpec().equals(COMMON_SPEC)) {
+			LOGGER.info("Blood Magic common config reloaded; values are now:");
+			LOGGER.info("  wellOfSuffering = {}", COMMON.wellOfSuffering.get());
+			LOGGER.info("  sacrificialDaggerConversion = {}", COMMON.sacrificialDaggerConversion.get());
+			LOGGER.info("  sacrificialValues = {}", COMMON.sacrificialValues.get());
+			LOGGER.info("  makeDungeonRitualCreativeOnly = {}", COMMON.makeDungeonRitualCreativeOnly.get());
+			// If you need to push these values into your API or registries:
+			// BloodMagicAPI.INSTANCE.applyCommonConfig(COMMON);
 		}
 	}
 
 	public static final ClientConfig CLIENT;
 	public static final ForgeConfigSpec CLIENT_SPEC;
 
-	static
-	{
-		final Pair<ClientConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(ClientConfig::new);
-		CLIENT_SPEC = specPair.getRight();
-		CLIENT = specPair.getLeft();
+	static {
+		var pair = new ForgeConfigSpec.Builder().configure(ClientConfig::new);
+		CLIENT_SPEC = pair.getRight();
+		CLIENT      = pair.getLeft();
 	}
 
-	public static class ClientConfig
-	{
-//		public final ForgeConfigSpec.DoubleValue demonWillGaugeX;
-//		public final ForgeConfigSpec.DoubleValue demonWillGaugeY;
-//		public final ForgeConfigSpec.DoubleValue bloodAltarGaugeX;
-//		public final ForgeConfigSpec.DoubleValue bloodAltarGaugeY;
-//		public final ForgeConfigSpec.DoubleValue bloodAltarAdvGaugeX;
-//		public final ForgeConfigSpec.DoubleValue bloodAltarAdvGaugeY;
-//		public final ForgeConfigSpec.DoubleValue incenseGaugeX;
-//		public final ForgeConfigSpec.DoubleValue incenseGaugeY;
-//		public final ForgeConfigSpec.DoubleValue holdingX;
-//		public final ForgeConfigSpec.DoubleValue holdingY;
-
+	public static class ClientConfig {
 		public final ForgeConfigSpec.BooleanValue alwaysRenderRoutingLines;
 		public final ForgeConfigSpec.BooleanValue sigilHoldingSkipsEmptySlots;
 
-		ClientConfig(ForgeConfigSpec.Builder builder)
-		{
-			builder.comment("Always render the beams between routing nodes.", "If disabled, the beams will only render while the Node Router is held.").push("client");
+		ClientConfig(ForgeConfigSpec.Builder builder) {
+			builder.comment(
+					"Always render the beams between routing nodes."
+			).push("client");
 			alwaysRenderRoutingLines = builder.define("alwaysRenderRoutingLines", false);
 
-			builder.comment("When cycling through slots, the Sigil of Holding will skip over empty slots and move to the next occupied one.", "If disabled, it will behave identically to the default hotbar.");
+			builder.comment(
+					"Sigil of Holding skips empty slots when cycling."
+			);
 			sigilHoldingSkipsEmptySlots = builder.define("sigilHoldingSkipsEmptySlots", false);
 			builder.pop();
-
-//			builder.comment("Settings for the position of the Demon Will Gauge HUD element.").push("hud");
-//			demonWillGaugeX = builder.defineInRange("DemonWillGaugePosX", 0.01, 0, 1);
-//			demonWillGaugeY = builder.defineInRange("DemonWillGaugePosY", 0.01, 0, 1);
-//
-//			builder.comment("Settings for the position of the basic Blood Altar info HUD element.");
-//			bloodAltarGaugeX = builder.defineInRange("bloodAltarGaugeX", 0.01, 0, 1);
-//			bloodAltarGaugeY = builder.defineInRange("bloodAltarGaugeY", 0.01, 0, 1);
-//
-//			builder.comment("Settings for the position of the advanced Blood Altar info HUD element.");
-//			bloodAltarAdvGaugeX = builder.defineInRange("bloodAltarAdvGaugeX", 0.01, 0, 1);
-//			bloodAltarAdvGaugeY = builder.defineInRange("bloodAltarAdvGaugeY", 0.01, 0, 1);
-//
-//			builder.comment("Settings for the position of the Incense Altar info HUD element.");
-//			incenseGaugeX = builder.defineInRange("incenseGaugeX", 0.01, 0, 1);
-//			incenseGaugeY = builder.defineInRange("incenseGaugeY", 0.01, 0, 1);
-//
-//			builder.comment("Settings for the position of the Sigil of Holding info HUD element.");
-//			holdingX = builder.defineInRange("holdingX", 0.72f, 0, 1);
-//			holdingY = builder.defineInRange("holdingY", 1f, 0, 1);
-
-//			builder.pop();
 		}
-
 	}
 
 	@SubscribeEvent
-	public static void onClientReload(ModConfigEvent ev)
-	{
-		if (ev.getConfig().getSpec().equals(CLIENT_SPEC))
-		{
-			System.out.println("Reloading...?");
+	public static void onClientReload(ModConfigEvent ev) {
+		if (ev.getConfig().getSpec().equals(CLIENT_SPEC)) {
 			ElementRegistry.readConfig();
 		}
 	}

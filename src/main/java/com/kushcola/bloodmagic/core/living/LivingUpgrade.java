@@ -1,8 +1,14 @@
 package com.kushcola.bloodmagic.core.living;
 
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 import com.google.common.collect.Lists;
@@ -18,26 +24,25 @@ import com.google.gson.JsonParseException;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 
-import com.mojang.serialization.Codec;
-import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.Util;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.Util;
-import net.minecraftforge.registries.IForgeRegistry;
-import net.minecraftforge.registries.tags.ITagManager;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+/**
+ * Represents one “living upgrade” (skill tree branch) for players.
+ */
 @JsonAdapter(LivingUpgrade.Deserializer.class)
-public class LivingUpgrade implements IForgeRegistry<LivingUpgrade> {
-	public static final LivingUpgrade DUMMY = new LivingUpgrade(new ResourceLocation("dummy"), levels -> levels.add(new Level(0, 0)));
+public class LivingUpgrade
+{
+	public static final LivingUpgrade DUMMY = new LivingUpgrade(
+			new ResourceLocation("dummy"),
+			levels -> levels.add(new Level(0, 0))
+	);
 
 	private final ResourceLocation key;
 	private final Set<ResourceLocation> incompatible;
@@ -60,102 +65,88 @@ public class LivingUpgrade implements IForgeRegistry<LivingUpgrade> {
 
 		List<Level> levels = Lists.newArrayList();
 		experienceMapper.accept(levels);
-
-		for (int i = 0; i < levels.size(); i++)
-		{
-			Level level = levels.get(i);
-			experienceToLevel.put(level.experienceNeeded, i + 1);
-			levelToCost.put(i + 1, level.upgradeCost);
+		for (int i = 0; i < levels.size(); i++) {
+			Level lvl = levels.get(i);
+			experienceToLevel.put(lvl.experienceNeeded, i + 1);
+			levelToCost.put(i + 1, lvl.upgradeCost);
 		}
 	}
 
 	public LivingUpgrade withBonusSet(String id, Consumer<List<Number>> modifiers)
 	{
-//		List<Number> values = DefaultedList.of();
-		List<Number> values = new ArrayList<Number>();
+		List<Number> values = new ArrayList<>();
 		modifiers.accept(values);
-		if (values.size() != levelToCost.size())
-			throw new RuntimeException("Bonus size and level size must be the same.");
-
+		if (values.size() != levelToCost.size()) {
+			throw new RuntimeException("Bonus size and level size must match.");
+		}
 		bonuses.put(id, new Bonus(id, values));
 		return this;
 	}
 
 	public Number getBonusValue(String id, int level)
 	{
-		List<Number> modifiers = bonuses.getOrDefault(id, Bonus.DEFAULT).modifiers;
-		if (modifiers.isEmpty() || level == 0)
-			return 0;
-
-		return modifiers.get(level - 1);
+		List<Number> mods = bonuses.getOrDefault(id, Bonus.DEFAULT).modifiers;
+		if (mods.isEmpty() || level <= 0) return 0;
+		return mods.get(Math.min(level - 1, mods.size() - 1));
 	}
 
-	public LivingUpgrade withAttributeProvider(IAttributeProvider attributeProvider)
+	public LivingUpgrade withAttributeProvider(IAttributeProvider prov)
 	{
-		this.attributeProvider = attributeProvider;
+		this.attributeProvider = prov;
 		return this;
 	}
+	public IAttributeProvider getAttributeProvider() { return attributeProvider; }
 
-	public IAttributeProvider getAttributeProvider()
+	public LivingUpgrade withArmorProvider(IArmorProvider prov)
 	{
-		return attributeProvider;
-	}
-
-	public LivingUpgrade withArmorProvider(IArmorProvider armorProvider)
-	{
-		this.armorProvider = armorProvider;
+		this.armorProvider = prov;
 		return this;
 	}
+	public IArmorProvider getArmorProvider() { return armorProvider; }
 
-	public IArmorProvider getArmorProvider()
+	public LivingUpgrade withDamageProvider(IDamageProvider prov)
 	{
-		return armorProvider;
-	}
-
-	public LivingUpgrade withDamageProvider(IDamageProvider damageProvider)
-	{
-		this.damageProvider = damageProvider;
+		this.damageProvider = prov;
 		return this;
 	}
-
-	public IDamageProvider getDamageProvider()
-	{
-		return damageProvider;
-	}
+	public IDamageProvider getDamageProvider() { return damageProvider; }
 
 	public String getTranslationKey()
 	{
-		return translationKey == null ? translationKey = Util.makeDescriptionId("living_upgrade", key)
-				: translationKey;
+		if (translationKey == null) {
+			translationKey = Util.makeDescriptionId("living_upgrade", key);
+		}
+		return translationKey;
 	}
 
-	public boolean isNegative()
+	public boolean isNegative() { return isNegative; }
+	public LivingUpgrade asDowngrade()
 	{
-		return isNegative;
+		this.isNegative = true;
+		return this;
 	}
 
-	public boolean isCompatible(ResourceLocation otherUpgrade)
+	public boolean isCompatible(ResourceLocation other)
 	{
-		return !incompatible.contains(otherUpgrade);
+		return !incompatible.contains(other);
 	}
-
-	public LivingUpgrade addIncompatibility(ResourceLocation key, ResourceLocation... otherKeys)
+	public LivingUpgrade addIncompatibility(ResourceLocation one, ResourceLocation... others)
 	{
-		incompatible.add(key);
-		Collections.addAll(incompatible, otherKeys);
+		incompatible.add(one);
+		Collections.addAll(incompatible, others);
 		return this;
 	}
 
 	public int getLevel(int experience)
 	{
-		Map.Entry<Integer, Integer> floor = experienceToLevel.floorEntry(experience);
+		Entry<Integer, Integer> floor = experienceToLevel.floorEntry(experience);
 		return floor == null ? 0 : floor.getValue();
 	}
 
 	public int getNextRequirement(int experience)
 	{
-		Integer ret = experienceToLevel.ceilingKey(experience + 1);
-		return ret == null ? 0 : ret;
+		Integer next = experienceToLevel.ceilingKey(experience + 1);
+		return next == null ? 0 : next;
 	}
 
 	public int getLevelCost(int level)
@@ -165,184 +156,57 @@ public class LivingUpgrade implements IForgeRegistry<LivingUpgrade> {
 
 	public int getLevelExp(int level)
 	{
-		for (Entry<Integer, Integer> entry : experienceToLevel.entrySet())
-		{
-			if (entry.getValue() == level)
-			{
-				return entry.getKey();
+		for (Entry<Integer, Integer> e : experienceToLevel.entrySet()) {
+			if (e.getValue() == level) {
+				return e.getKey();
 			}
 		}
-
 		return 0;
 	}
 
-	public ResourceLocation getKey()
-	{
-		return key;
-	}
-
-	public LivingUpgrade asDowngrade()
-	{
-		this.isNegative = true;
-		return this;
-	}
+	public ResourceLocation getKey() { return key; }
 
 	@Override
-	public String toString()
-	{
-		return key.toString();
-	}
+	public String toString() { return key.toString(); }
 
-	@Override
-	public ResourceKey<Registry<LivingUpgrade>> getRegistryKey() {
-		return null;
-	}
-
-	@Override
-	public ResourceLocation getRegistryName() {
-		return null;
-	}
-
-	@Override
-	public void register(String key, LivingUpgrade value) {
-
-	}
-
-	@Override
-	public void register(ResourceLocation key, LivingUpgrade value) {
-
-	}
-
-	@Override
-	public boolean containsKey(ResourceLocation key) {
-		return false;
-	}
-
-	@Override
-	public boolean containsValue(LivingUpgrade value) {
-		return false;
-	}
-
-	@Override
-	public boolean isEmpty() {
-		return false;
-	}
-
-	@Override
-	public @Nullable LivingUpgrade getValue(ResourceLocation key) {
-		return null;
-	}
-
-	@Override
-	public @Nullable ResourceLocation getKey(LivingUpgrade value) {
-		return null;
-	}
-
-	@Override
-	public @Nullable ResourceLocation getDefaultKey() {
-		return null;
-	}
-
-	@Override
-	public @NotNull Optional<ResourceKey<LivingUpgrade>> getResourceKey(LivingUpgrade value) {
-		return Optional.empty();
-	}
-
-	@Override
-	public @NotNull Set<ResourceLocation> getKeys() {
-		return null;
-	}
-
-	@Override
-	public @NotNull Collection<LivingUpgrade> getValues() {
-		return null;
-	}
-
-	@Override
-	public @NotNull Set<Entry<ResourceKey<LivingUpgrade>, LivingUpgrade>> getEntries() {
-		return null;
-	}
-
-	@Override
-	public @NotNull Codec<LivingUpgrade> getCodec() {
-		return null;
-	}
-
-	@Override
-	public @NotNull Optional<Holder<LivingUpgrade>> getHolder(ResourceKey<LivingUpgrade> key) {
-		return Optional.empty();
-	}
-
-	@Override
-	public @NotNull Optional<Holder<LivingUpgrade>> getHolder(ResourceLocation location) {
-		return Optional.empty();
-	}
-
-	@Override
-	public @NotNull Optional<Holder<LivingUpgrade>> getHolder(LivingUpgrade value) {
-		return Optional.empty();
-	}
-
-	@Override
-	public @Nullable ITagManager<LivingUpgrade> tags() {
-		return null;
-	}
-
-	@Override
-	public @NotNull Optional<Holder.Reference<LivingUpgrade>> getDelegate(ResourceKey<LivingUpgrade> rkey) {
-		return Optional.empty();
-	}
-
-	@Override
-	public Holder.@NotNull Reference<LivingUpgrade> getDelegateOrThrow(ResourceKey<LivingUpgrade> rkey) {
-		return null;
-	}
-
-	@Override
-	public @NotNull Optional<Holder.Reference<LivingUpgrade>> getDelegate(ResourceLocation key) {
-		return Optional.empty();
-	}
-
-	@Override
-	public Holder.@NotNull Reference<LivingUpgrade> getDelegateOrThrow(ResourceLocation key) {
-		return null;
-	}
-
-	@Override
-	public @NotNull Optional<Holder.Reference<LivingUpgrade>> getDelegate(LivingUpgrade value) {
-		return Optional.empty();
-	}
-
-	@Override
-	public Holder.@NotNull Reference<LivingUpgrade> getDelegateOrThrow(LivingUpgrade value) {
-		return null;
-	}
-
-	@Override
-	public <T> T getSlaveMap(ResourceLocation slaveMapName, Class<T> type) {
-		return null;
-	}
-
-	@NotNull
-	@Override
-	public Iterator<LivingUpgrade> iterator() {
-		return null;
-	}
+	/* --- Providers --- */
 
 	public interface IAttributeProvider
 	{
-		void handleAttributes(LivingStats stats, Multimap<Attribute, AttributeModifier> modifiers, UUID uuid, LivingUpgrade upgrade, int level);
+		void handleAttributes(
+				LivingStats stats,
+				Multimap<Attribute, AttributeModifier> modifiers,
+				UUID uuid,
+				LivingUpgrade upgrade,
+				int level
+		);
 	}
 
 	public interface IArmorProvider
 	{
-		double getProtection(Player player, LivingStats stats, DamageSource source, LivingUpgrade upgrade, int level);
+		double getProtection(
+				Player player,
+				LivingStats stats,
+				DamageSource source,
+				LivingUpgrade upgrade,
+				int level
+		);
 	}
 
 	public interface IDamageProvider
 	{
-		double getAdditionalDamage(Player player, ItemStack weapon, double damage, LivingStats stats, LivingEntity attacked, LivingUpgrade upgrade, int level);
+		double getAdditionalDamage(
+				Player player,
+				ItemStack weapon,
+				double damage,
+				LivingStats stats,
+				LivingEntity target,
+				LivingUpgrade upgrade,
+				int level
+		);
 	}
+
+	/* --- Level / Bonus --- */
 
 	public static class Level
 	{
@@ -360,58 +224,59 @@ public class LivingUpgrade implements IForgeRegistry<LivingUpgrade> {
 
 	public static class Bonus
 	{
-
 		private static final Bonus DEFAULT = new Bonus("null", Collections.emptyList());
-
 		private final String id;
 		private final List<Number> modifiers;
 
-		public Bonus(String id, List<Number> modifiers)
+		public Bonus(String id, List<Number> mods)
 		{
 			this.id = id;
-			this.modifiers = modifiers;
+			this.modifiers = mods;
 		}
 
-		public String getId()
-		{
-			return id;
-		}
+		public String getId() { return id; }
 	}
+
+	/* --- JSON Deserializer --- */
 
 	public static class Deserializer implements JsonDeserializer<LivingUpgrade>
 	{
 		@Override
-		public LivingUpgrade deserialize(JsonElement element, Type typeOfT, JsonDeserializationContext context)
-				throws JsonParseException
+		public LivingUpgrade deserialize(
+				JsonElement element,
+				Type typeOfT,
+				JsonDeserializationContext context
+		) throws JsonParseException
 		{
 			JsonObject json = element.getAsJsonObject();
 			ResourceLocation id = new ResourceLocation(json.getAsJsonPrimitive("id").getAsString());
-			List<Level> levels = context.deserialize(json.getAsJsonArray("levels"), new TypeToken<List<Level>>()
-			{
-			}.getType());
+
+			List<Level> levels = context.deserialize(
+					json.getAsJsonArray("levels"),
+					new TypeToken<List<Level>>() {}.getType()
+			);
 			boolean negative = json.has("negative") && json.getAsJsonPrimitive("negative").getAsBoolean();
 
-			LivingUpgrade upgrade = new LivingUpgrade(id, upgradeLevels -> upgradeLevels.addAll(levels));
-			if (negative)
-				upgrade.asDowngrade();
+			LivingUpgrade upgrade = new LivingUpgrade(id, lvlList -> lvlList.addAll(levels));
+			if (negative) upgrade.asDowngrade();
 
-			if (json.has("incompatibilities"))
-			{
-				String[] incompatibilities = context.deserialize(json.getAsJsonArray("incompatibilities"), String[].class);
-				for (String incompatible : incompatibilities)
-					upgrade.addIncompatibility(new ResourceLocation(incompatible));
+			if (json.has("incompatibilities")) {
+				String[] incomp = context.deserialize(json.getAsJsonArray("incompatibilities"), String[].class);
+				for (String s : incomp) {
+					upgrade.addIncompatibility(new ResourceLocation(s));
+				}
 			}
-
-			if (json.has("bonuses"))
-			{
-				Map<String, Number[]> bonuses = context.deserialize(json.getAsJsonObject("bonuses"), new TypeToken<Map<String, Number[]>>()
-				{
-				}.getType());
-				bonuses.forEach((k, v) -> upgrade.withBonusSet(k, numbers -> Collections.addAll(numbers, v)));
+			if (json.has("bonuses")) {
+				Map<String, Number[]> bonusMap = context.deserialize(
+						json.getAsJsonObject("bonuses"),
+						new TypeToken<Map<String, Number[]>>() {}.getType()
+				);
+				bonusMap.forEach((k, v) ->
+						upgrade.withBonusSet(k, list -> Collections.addAll(list, v))
+				);
 			}
 
 			return upgrade;
 		}
 	}
-
 }

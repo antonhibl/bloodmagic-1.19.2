@@ -4,77 +4,66 @@ import javax.annotation.Nonnull;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-
 import com.kushcola.bloodmagic.recipe.RecipeLivingDowngrade;
 import com.kushcola.bloodmagic.util.Constants;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.ForgeRegistryEntry;
 
-public class LivingDowngradeRecipeSerializer<RECIPE extends RecipeLivingDowngrade> extends ForgeRegistryEntry<RecipeSerializer<?>> implements RecipeSerializer<RECIPE>
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.GsonHelper;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+
+public class LivingDowngradeRecipeSerializer<RECIPE extends RecipeLivingDowngrade>
+		implements RecipeSerializer<RECIPE>
 {
 	private final IFactory<RECIPE> factory;
 
-	public LivingDowngradeRecipeSerializer(IFactory<RECIPE> factory)
-	{
+	public LivingDowngradeRecipeSerializer(IFactory<RECIPE> factory) {
 		this.factory = factory;
 	}
 
 	@Nonnull
 	@Override
-	public RECIPE fromJson(@Nonnull ResourceLocation recipeId, @Nonnull JsonObject json)
-	{
-		JsonElement input = GsonHelper.isArrayNode(json, Constants.JSON.INPUT)
+	public RECIPE fromJson(
+			@Nonnull ResourceLocation recipeId,
+			@Nonnull JsonObject json
+	) {
+		JsonElement inputElem = GsonHelper.isArrayNode(json, Constants.JSON.INPUT)
 				? GsonHelper.getAsJsonArray(json, Constants.JSON.INPUT)
 				: GsonHelper.getAsJsonObject(json, Constants.JSON.INPUT);
 
-		Ingredient inputIng = Ingredient.fromJson(input);
-		ResourceLocation rl = new ResourceLocation(GsonHelper.getAsString(json, Constants.JSON.RESOURCE));
+		Ingredient input = Ingredient.fromJson(inputElem);
+		ResourceLocation outputRl = new ResourceLocation(
+				GsonHelper.getAsString(json, Constants.JSON.RESOURCE)
+		);
 
-		return this.factory.create(recipeId, inputIng, rl);
+		return factory.create(recipeId, input, outputRl);
 	}
 
 	@Override
-	public RECIPE fromNetwork(@Nonnull ResourceLocation recipeId, @Nonnull FriendlyByteBuf buffer)
-	{
-		try
-		{
-			Ingredient input = Ingredient.fromNetwork(buffer);
-			ResourceLocation rl = buffer.readResourceLocation();
-
-//			ItemStack output = buffer.readItemStack();
-//			int minimumTier = buffer.readInt();
-//			int syphon = buffer.readInt();
-//			int consumeRate = buffer.readInt();
-//			int drainRate = buffer.readInt();
-
-			return this.factory.create(recipeId, input, rl);
-		} catch (Exception e)
-		{
-//			Mekanism.logger.error("Error reading electrolysis recipe from packet.", e);
-			throw e;
-		}
+	public RECIPE fromNetwork(
+			@Nonnull ResourceLocation recipeId,
+			@Nonnull FriendlyByteBuf buffer
+	) {
+		Ingredient input = Ingredient.fromNetwork(buffer);
+		ResourceLocation outputRl = buffer.readResourceLocation();
+		return factory.create(recipeId, input, outputRl);
 	}
 
 	@Override
-	public void toNetwork(@Nonnull FriendlyByteBuf buffer, @Nonnull RECIPE recipe)
-	{
-		try
-		{
-			recipe.write(buffer);
-		} catch (Exception e)
-		{
-//			Mekanism.logger.error("Error writing electrolysis recipe to packet.", e);
-			throw e;
-		}
+	public void toNetwork(
+			@Nonnull FriendlyByteBuf buffer,
+			@Nonnull RECIPE recipe
+	) {
+		recipe.write(buffer);
 	}
 
 	@FunctionalInterface
-	public interface IFactory<RECIPE extends RecipeLivingDowngrade>
-	{
-		RECIPE create(ResourceLocation id, Ingredient input, ResourceLocation output);
+	public interface IFactory<RECIPE extends RecipeLivingDowngrade> {
+		RECIPE create(
+				ResourceLocation id,
+				Ingredient input,
+				ResourceLocation output
+		);
 	}
 }

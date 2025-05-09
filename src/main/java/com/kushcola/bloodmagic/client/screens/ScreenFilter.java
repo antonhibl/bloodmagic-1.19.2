@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.kushcola.bloodmagic.BloodMagic;
 import com.kushcola.bloodmagic.common.container.item.ContainerFilter;
 import com.kushcola.bloodmagic.common.item.routing.IItemFilterProvider;
 import com.kushcola.bloodmagic.network.RouterFilterPacket;
 import com.kushcola.bloodmagic.util.GhostItemHelper;
+
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -18,354 +20,223 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.Container;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import com.kushcola.bloodmagic.BloodMagic;
 
-public class ScreenFilter extends ScreenBase<ContainerFilter>
-{
-	private static final ResourceLocation background = BloodMagic.rl("textures/gui/routingfilter.png");
-	public Container filterInventory;
-	private Player player;
+public class ScreenFilter extends ScreenBase<ContainerFilter> {
+	private static final ResourceLocation BACKGROUND = BloodMagic.rl("textures/gui/routingfilter.png");
+	private final ContainerFilter container;
+	private final Player player;
 	private int left, top;
 
 	private EditBox textBox;
+	private int numberOfAddedButtons;
+	private final List<String> buttonKeyList = new ArrayList<>();
+	private final List<Button> buttonList = new ArrayList<>();
 
-	private int numberOfAddedButtons = 0;
-	private List<String> buttonKeyList = new ArrayList<String>();
-
-	private List<Button> buttonList = new ArrayList<>();
-
-	public ScreenFilter(ContainerFilter container, Inventory playerInventory, Component title)
-	{
+	public ScreenFilter(ContainerFilter container, Inventory playerInventory, Component title) {
 		super(container, playerInventory, title);
-		filterInventory = container.inventoryFilter;
+		this.container = container;
+		this.player = playerInventory.player;
 		imageWidth = 176;
 		imageHeight = 187;
-		this.player = playerInventory.player;
 	}
 
 	@Override
-	public void init()
-	{
+	public void init() {
 		super.init();
-		left = (this.width - this.imageWidth) / 2;
-		top = (this.height - this.imageHeight) / 2;
+		left = (width - imageWidth) / 2;
+		top = (height - imageHeight) / 2;
 
-		this.textBox = new EditBox(Minecraft.getInstance().font, left + 23, top + 19, 70, 12, new TextComponent("itemGroup.search"));
-		this.textBox.setBordered(false);
-//		this.textBox.setText("");
-		this.textBox.setMaxLength(50);
-		this.textBox.setVisible(true);
-		this.textBox.setTextColor(16777215);
-		this.textBox.setValue("");
+		// Use Component.translatable for the grey “search” hint
+		textBox = new EditBox(
+				Minecraft.getInstance().font,
+				left + 23, top + 19,
+				70, 12,
+				Component.translatable("itemGroup.search")
+		);
+		textBox.setBordered(false);
+		textBox.setMaxLength(50);
+		textBox.setVisible(true);
+		textBox.setTextColor(0xFFFFFF);
+		textBox.setValue("");
+		setInitialFocus(textBox);
 
 		numberOfAddedButtons = 0;
 		buttonKeyList.clear();
+		buttonList.clear();
 
-		ItemStack filterStack = this.container.filterStack;
+		ItemStack filterStack = container.filterStack;
+		if (filterStack.getItem() instanceof IItemFilterProvider provider) {
+			List<Pair<String, Button.OnPress>> actions = provider.getButtonAction(container);
+			for (Pair<String, Button.OnPress> pair : actions) {
+				String key = pair.getKey();
+				if (buttonKeyList.contains(key)) continue;
+				buttonKeyList.add(key);
 
-		if (filterStack.getItem() instanceof IItemFilterProvider)
-		{
-			IItemFilterProvider provider = (IItemFilterProvider) filterStack.getItem();
-			List<Pair<String, Button.OnPress>> buttonActionList = provider.getButtonAction(this.container);
-
-			for (Pair<String, Button.OnPress> pair : buttonActionList)
-			{
-				if (buttonKeyList.contains(pair.getKey()))
-				{
-					continue;
+				Pair<Integer, Integer> loc = getButtonLocation(numberOfAddedButtons);
+				// Empty label, so use Component.literal("")
+				Button btn = new Button(
+						left + loc.getLeft(),
+						top + loc.getRight(),
+						20, 20,
+						Component.literal(""),
+						pair.getRight()
+				);
+				if (!provider.isButtonGlobal(filterStack, key)) {
+					btn.active = false;
 				}
-				buttonKeyList.add(pair.getKey());
-				Pair<Integer, Integer> buttonLocation = getButtonLocation(numberOfAddedButtons);
-				Button addedButton = new Button(left + buttonLocation.getLeft(), top + buttonLocation.getRight(), 20, 20, new TextComponent(""), pair.getRight());
-
-				if (!provider.isButtonGlobal(filterStack, pair.getKey()))
-				{
-					addedButton.active = false;
-				}
-
-				this.addRenderableWidget(addedButton);
-				buttonList.add(addedButton);
+				addRenderableWidget(btn);
+				buttonList.add(btn);
 				numberOfAddedButtons++;
 			}
 		}
 	}
 
-	public Pair<Integer, Integer> getButtonLocation(int addedButton)
-	{
-		int x = 7;
+	private Pair<Integer, Integer> getButtonLocation(int index) {
+		int x = 7 + 20 * index;
 		int y = 32;
-
-		x = x + addedButton * 20;
-
 		return Pair.of(x, y);
 	}
 
 	@Override
-	protected void containerTick()
-	{
+	protected void containerTick() {
 		super.containerTick();
-		this.textBox.tick();
+		textBox.tick();
 	}
 
 	@Override
-	public boolean keyPressed(int keyCode, int scanCode, int modifiers)
-	{
-		if (this.textBox.isFocused())
-		{
-			if ((keyCode == 259 || keyCode == 261) && container.lastGhostSlotClicked != -1)
-			{
-				String str = this.textBox.getValue();
-
-				if (str != null && str.length() > 0)
-				{
-					str = str.substring(0, str.length() - 1);
-					this.textBox.setValue(str);
-					int amount = 0;
-					if (str.length() > 0)
-					{
-						try
-						{
-							Integer testVal = Integer.decode(str);
-							if (testVal != null)
-							{
-								amount = testVal;
-							}
-						} catch (NumberFormatException d)
-						{
-						}
-					}
-
-					setValueOfGhostItemInSlot(container.lastGhostSlotClicked, amount);
-				}
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		// handle backspace/delete in the EditBox and update ghost slot
+		if (textBox.isFocused() && (keyCode == 259 || keyCode == 261) && container.lastGhostSlotClicked != -1) {
+			String s = textBox.getValue();
+			if (!s.isEmpty()) {
+				s = s.substring(0, s.length() - 1);
+				textBox.setValue(s);
+				updateGhostAmount(s);
 			}
 		}
-
 		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 
 	@Override
-	public boolean charTyped(char typedChar, int keyCode)
-	{
-		try
-		{
-			Integer charVal = Integer.decode("" + typedChar);
-			if (charVal != null)
-			{
-				if (this.textBox.charTyped(typedChar, keyCode))
-				{
-					if (container.lastGhostSlotClicked != -1)
-					{
-						String str = this.textBox.getValue();
-						int amount = 0;
-
-						if (!str.isEmpty())
-						{
-							try
-							{
-								Integer testVal = Integer.decode(str);
-								if (testVal != null)
-								{
-									amount = testVal;
-								}
-							} catch (NumberFormatException d)
-							{
-							}
-						}
-
-						setValueOfGhostItemInSlot(container.lastGhostSlotClicked, amount);
-					}
-					return true;
-				} else
-				{
-					return super.charTyped(typedChar, keyCode);
-				}
-			}
-
-		} catch (NumberFormatException d)
-		{
+	public boolean charTyped(char typedChar, int keyCode) {
+		// only digits, update ghost
+		if (Character.isDigit(typedChar) && textBox.charTyped(typedChar, keyCode)) {
+			updateGhostAmount(textBox.getValue());
+			return true;
 		}
-
 		return super.charTyped(typedChar, keyCode);
 	}
 
-	private void setValueOfGhostItemInSlot(int ghostItemSlot, int amount)
-	{
-		Slot slot = container.getSlot(ghostItemSlot);
-		ItemStack ghostStack = slot.getItem();
-//		ItemStack ghostStack = container.inventoryFilter.getStackInSlot(ghostItemSlot);
-		if (!ghostStack.isEmpty())
-		{
-			GhostItemHelper.setItemGhostAmount(ghostStack, amount);
-			GhostItemHelper.setItemGhostAmount(container.inventoryFilter.getItem(ghostItemSlot), amount);
-			if (container.filterStack.getItem() instanceof IItemFilterProvider)
-			{
-				((IItemFilterProvider) container.filterStack.getItem()).setGhostItemAmount(container.filterStack, ghostItemSlot, amount);
-
+	private void updateGhostAmount(String str) {
+		int amount = 0;
+		if (!str.isEmpty()) {
+			try { amount = Integer.parseInt(str); } catch (NumberFormatException ignored) {}
+		}
+		int slot = container.lastGhostSlotClicked;
+		if (slot >= 0) {
+			Slot s = container.getSlot(slot);
+			ItemStack ghost = s.getItem();
+			if (!ghost.isEmpty()) {
+				GhostItemHelper.setItemGhostAmount(ghost, amount);
+				GhostItemHelper.setItemGhostAmount(container.inventoryFilter.getItem(slot), amount);
+				if (container.filterStack.getItem() instanceof IItemFilterProvider prov) {
+					prov.setGhostItemAmount(container.filterStack, slot, amount);
+				}
+				BloodMagic.packetHandler.sendToServer(new RouterFilterPacket(
+						player.getInventory().selected, slot, amount
+				));
 			}
 		}
-
-		BloodMagic.packetHandler.sendToServer(new RouterFilterPacket(player.getInventory().selected, ghostItemSlot, amount));
 	}
 
-	/**
-	 * Called when the mouse is clicked. Args : mouseX, mouseY, clickedButton
-	 */
 	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int mouseButton)
-	{
-		boolean testBool = super.mouseClicked(mouseX, mouseY, mouseButton);
+	public boolean mouseClicked(double mx, double my, int button) {
+		super.mouseClicked(mx, my, button);
+		if (textBox.mouseClicked(mx, my, button)) return true;
 
-		if (this.textBox.mouseClicked(mouseX, mouseY, mouseButton))
-		{
-			return true;
-		}
-
-		if (container.lastGhostSlotClicked != -1)
-		{
+		int slot = container.lastGhostSlotClicked;
+		if (slot >= 0) {
 			enableAllButtons();
-			Slot slot = container.getSlot(container.lastGhostSlotClicked);
-			ItemStack stack = slot.getItem();
-			if (!stack.isEmpty())
-			{
-				int amount = GhostItemHelper.getItemGhostAmount(stack);
-				if (amount == 0)
-				{
-					this.textBox.setValue("");
-				} else
-				{
-					this.textBox.setValue("" + amount);
-				}
-			} else
-			{
-				this.textBox.setValue("");
-			}
+			Slot s = container.getSlot(slot);
+			ItemStack st = s.getItem();
+			textBox.setValue(st.isEmpty() ? "" : String.valueOf(GhostItemHelper.getItemGhostAmount(st)));
 		}
-
 		return true;
 	}
 
-	private void enableAllButtons()
-	{
-		for (AbstractWidget button : buttonList)
-		{
-			button.active = true;
-		}
+	private void enableAllButtons() {
+		for (AbstractWidget b : buttonList) b.active = true;
 	}
 
 	@Override
-	public ResourceLocation getBackground()
-	{
-		return background;
+	public ResourceLocation getBackground() {
+		return BACKGROUND;
 	}
 
 	@Override
-	protected void renderLabels(PoseStack stack, int mouseX, int mouseY)
-	{
-//		this.font.draw(stack, new TranslationTextComponent("tile.bloodmagic.alchemytable.name"), 8, 5, 4210752);
-		this.font.draw(stack, new TranslatableComponent("container.inventory"), 8, 93, 4210752);
-		this.font.draw(stack, container.filterStack.getHoverName(), 8, 4, 4210752);
+	protected void renderLabels(PoseStack pose, int mx, int my) {
+		// "container.inventory" becomes translatable
+		font.draw(pose, Component.translatable("container.inventory"), 8, 93, 0x404040);
+		font.draw(pose, container.filterStack.getHoverName(), 8, 4, 0x404040);
 
-		if (container.filterStack.getItem() instanceof IItemFilterProvider)
-		{
-			for (int i = 0; i < numberOfAddedButtons; i++)
-			{
-				int currentButtonState = ((IItemFilterProvider) container.filterStack.getItem()).getCurrentButtonState(container.filterStack, buttonKeyList.get(i), container.lastGhostSlotClicked);
-				Pair<Integer, Integer> buttonLocation = getButtonLocation(i);
-				Pair<Integer, Integer> textureLocation = ((IItemFilterProvider) container.filterStack.getItem()).getTexturePositionForState(container.filterStack, buttonKeyList.get(i), currentButtonState);
-
-				int w = 20;
-				int h = 20;
-
-				int xl = buttonLocation.getLeft();
-				int yl = buttonLocation.getRight();
-
-				RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-				RenderSystem.setShaderTexture(0, background);
-				this.blit(stack, +xl, +yl, textureLocation.getLeft(), textureLocation.getRight(), w, h);
+		// Draw the little state icons
+		if (container.filterStack.getItem() instanceof IItemFilterProvider prov) {
+			for (int i = 0; i < numberOfAddedButtons; i++) {
+				Pair<Integer, Integer> bl = getButtonLocation(i);
+				Pair<Integer, Integer> tx = prov.getTexturePositionForState(
+						container.filterStack, buttonKeyList.get(i), container.lastGhostSlotClicked
+				);
+				RenderSystem.setShaderColor(1,1,1,1);
+				RenderSystem.setShaderTexture(0, BACKGROUND);
+				blit(pose,
+						leftPos + bl.getLeft(), topPos + bl.getRight(),
+						tx.getLeft(), tx.getRight(),
+						20, 20
+				);
 			}
 		}
 	}
 
 	@Override
-	protected void renderBg(PoseStack stack, float partialTicks, int mouseX, int mouseY)
-	{
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.setShaderTexture(0, background);
-//		int i = (this.width - this.xSize) / 2;
-//		int j = (this.height - this.ySize) / 2;
-//		this.blit(stack, i, j, 0, 0, this.xSize, this.ySize);
-//
-//		int l = this.getCookProgressScaled(90);
-//		this.blit(stack, i + 115, j + 14 + 90 - l, 176, 90 - l, 18, l);
-//
-//		for (int slotId = 0; slotId < 6; slotId++)
-//		{
-//			if (!((TileAlchemyTable) filterInventory).isInputSlotAccessible(slotId))
-//			{
-//				Slot slot = this.getContainer().getSlot(slotId);
-//
-//				this.blit(stack, i + slot.xPos, j + slot.yPos, 195, 1, 16, 16);
-//			}
-//		}
-
-		// draw your Gui here, only thing you need to change is the path
-//        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-//        this.mc.getTextureManager().bindTexture(texture);
+	protected void renderBg(PoseStack pose, float partial, int mx, int my) {
+		RenderSystem.setShaderColor(1,1,1,1);
+		RenderSystem.setShaderTexture(0, BACKGROUND);
 		int x = (width - imageWidth) / 2;
 		int y = (height - imageHeight) / 2;
-		this.blit(stack, x, y, 0, 0, imageWidth, imageHeight);
-		ItemStack held = player.getItemInHand(InteractionHand.MAIN_HAND);
-		if (container.lastGhostSlotClicked >= 0)
-		{
-//            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-			this.blit(stack, 106 + x + 21 * (container.lastGhostSlotClicked % 3), y + 11 + 21 * (container.lastGhostSlotClicked / 3), 0, 187, 24, 24);
-		}
+		blit(pose, x, y, 0, 0, imageWidth, imageHeight);
 
+		// highlight the last ghost slot
+		int slot = container.lastGhostSlotClicked;
+		if (slot >= 0) {
+			int col = x + 106 + 21 * (slot % 3);
+			int row = y + 11 + 21 * (slot / 3);
+			blit(pose, col, row, 0, 187, 24, 24);
+		}
 	}
 
 	@Override
-	public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks)
-	{
-		super.render(matrixStack, mouseX, mouseY, partialTicks);
-		{
-			this.textBox.render(matrixStack, mouseX, mouseY, partialTicks);
-		}
+	public void render(PoseStack pose, int mx, int my, float partial) {
+		super.render(pose, mx, my, partial);
+		textBox.render(pose, mx, my, partial);
 
-		List<Component> tooltip = new ArrayList<>();
-
-		if (container.filterStack.getItem() instanceof IItemFilterProvider)
-		{
-			for (int i = 0; i < numberOfAddedButtons; i++)
-			{
-				Pair<Integer, Integer> buttonLocation = getButtonLocation(i);
-				int w = 20;
-				int h = 20;
-
-				int x = this.leftPos + buttonLocation.getLeft();
-				int y = this.topPos + buttonLocation.getRight();
-
-				if (mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h)
-				{
-					List<Component> components = ((IItemFilterProvider) container.filterStack.getItem()).getTextForHoverItem(container.filterStack, buttonKeyList.get(i), container.lastGhostSlotClicked);
-					if (components != null && !components.isEmpty())
-						tooltip.addAll(components);
+		List<Component> tip = new ArrayList<>();
+		if (container.filterStack.getItem() instanceof IItemFilterProvider prov) {
+			for (int i = 0; i < numberOfAddedButtons; i++) {
+				Pair<Integer, Integer> bl = getButtonLocation(i);
+				int bx = leftPos + bl.getLeft(), by = topPos + bl.getRight();
+				if (mx >= bx && mx < bx + 20 && my >= by && my < by + 20) {
+					List<Component> c = prov.getTextForHoverItem(
+							container.filterStack, buttonKeyList.get(i), container.lastGhostSlotClicked
+					);
+					if (c != null && !c.isEmpty()) tip.addAll(c);
 				}
 			}
 		}
-
-		if (!tooltip.isEmpty())
-			this.renderTooltip(matrixStack, tooltip, Optional.empty(), mouseX, mouseY, font);
-//			GuiUtils.drawHoveringText(matrixStack, tooltip, mouseX, mouseY, width, height, -1, font);
+		if (!tip.isEmpty()) renderTooltip(pose, tip, Optional.empty(), mx, my, font);
 	}
-
 }

@@ -8,18 +8,18 @@ import javax.annotation.Nonnull;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-
 import com.kushcola.bloodmagic.common.meteor.MeteorLayer;
 import com.kushcola.bloodmagic.recipe.RecipeMeteor;
 import com.kushcola.bloodmagic.util.Constants;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.ForgeRegistryEntry;
 
-public class MeteorRecipeSerializer<RECIPE extends RecipeMeteor> extends ForgeRegistryEntry<RecipeSerializer<?>> implements RecipeSerializer<RECIPE>
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.GsonHelper;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+
+public class MeteorRecipeSerializer<RECIPE extends RecipeMeteor>
+		implements RecipeSerializer<RECIPE>
 {
 	private final IFactory<RECIPE> factory;
 
@@ -30,74 +30,64 @@ public class MeteorRecipeSerializer<RECIPE extends RecipeMeteor> extends ForgeRe
 
 	@Nonnull
 	@Override
-	public RECIPE fromJson(@Nonnull ResourceLocation recipeId, @Nonnull JsonObject json)
-	{
-
-		JsonElement input = GsonHelper.isArrayNode(json, Constants.JSON.INPUT)
+	public RECIPE fromJson(
+			@Nonnull ResourceLocation recipeId,
+			@Nonnull JsonObject json
+	) {
+		JsonElement inputElem = GsonHelper.isArrayNode(json, Constants.JSON.INPUT)
 				? GsonHelper.getAsJsonArray(json, Constants.JSON.INPUT)
 				: GsonHelper.getAsJsonObject(json, Constants.JSON.INPUT);
 
-		Ingredient inputIng = Ingredient.fromJson(input);
-
+		Ingredient input = Ingredient.fromJson(inputElem);
 		int syphon = GsonHelper.getAsInt(json, Constants.JSON.SYPHON);
-		float explosionRadius = GsonHelper.getAsInt(json, Constants.JSON.EXPLOSION);
+		float explosionRadius = GsonHelper.getAsFloat(json, Constants.JSON.EXPLOSION);
 
 		List<MeteorLayer> layerList = new ArrayList<>();
-		if (json.has(Constants.JSON.LAYER) && GsonHelper.isArrayNode(json, Constants.JSON.LAYER))
-		{
-			JsonArray mainArray = GsonHelper.getAsJsonArray(json, Constants.JSON.LAYER);
-
-			for (JsonElement element : mainArray)
-			{
-				JsonObject obj = element.getAsJsonObject();
-				MeteorLayer layer = MeteorLayer.deserialize(obj);
-
-				layerList.add(layer);
+		if (json.has(Constants.JSON.LAYER) && GsonHelper.isArrayNode(json, Constants.JSON.LAYER)) {
+			JsonArray array = GsonHelper.getAsJsonArray(json, Constants.JSON.LAYER);
+			for (JsonElement elem : array) {
+				JsonObject obj = elem.getAsJsonObject();
+				layerList.add(MeteorLayer.deserialize(obj));
 			}
 		}
 
-		return this.factory.create(recipeId, inputIng, syphon, explosionRadius, layerList);
+		return factory.create(recipeId, input, syphon, explosionRadius, layerList);
 	}
 
 	@Override
-	public RECIPE fromNetwork(@Nonnull ResourceLocation recipeId, @Nonnull FriendlyByteBuf buffer)
-	{
-		try
-		{
-			Ingredient input = Ingredient.fromNetwork(buffer);
-			int syphon = buffer.readInt();
-			float explosionRadius = buffer.readFloat();
+	public RECIPE fromNetwork(
+			@Nonnull ResourceLocation recipeId,
+			@Nonnull FriendlyByteBuf buffer
+	) {
+		Ingredient input = Ingredient.fromNetwork(buffer);
+		int syphon = buffer.readInt();
+		float explosionRadius = buffer.readFloat();
 
-			int listSize = buffer.readInt();
-			List<MeteorLayer> layerList = new ArrayList<>();
-			for (int i = 0; i < listSize; i++)
-			{
-				MeteorLayer layer = MeteorLayer.read(buffer);
-				layerList.add(layer);
-			}
-
-			return this.factory.create(recipeId, input, syphon, explosionRadius, layerList);
-		} catch (Exception e)
-		{
-			throw e;
+		int listSize = buffer.readInt();
+		List<MeteorLayer> layerList = new ArrayList<>();
+		for (int i = 0; i < listSize; i++) {
+			layerList.add(MeteorLayer.read(buffer));
 		}
+
+		return factory.create(recipeId, input, syphon, explosionRadius, layerList);
 	}
 
 	@Override
-	public void toNetwork(@Nonnull FriendlyByteBuf buffer, @Nonnull RECIPE recipe)
-	{
-		try
-		{
-			recipe.write(buffer);
-		} catch (Exception e)
-		{
-			throw e;
-		}
+	public void toNetwork(
+			@Nonnull FriendlyByteBuf buffer,
+			@Nonnull RECIPE recipe
+	) {
+		recipe.write(buffer);
 	}
 
 	@FunctionalInterface
-	public interface IFactory<RECIPE extends RecipeMeteor>
-	{
-		RECIPE create(ResourceLocation id, Ingredient input, int syphon, float explosionRadius, List<MeteorLayer> layerList);
+	public interface IFactory<RECIPE extends RecipeMeteor> {
+		RECIPE create(
+				ResourceLocation id,
+				Ingredient input,
+				int syphon,
+				float explosionRadius,
+				List<MeteorLayer> layerList
+		);
 	}
 }

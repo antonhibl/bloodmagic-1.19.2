@@ -11,9 +11,6 @@ import javax.annotation.Nonnull;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
-import com.kushcola.bloodmagic.incense.EnumTranquilityType;
-import com.kushcola.bloodmagic.incense.IncenseTranquilityRegistry;
-import com.kushcola.bloodmagic.incense.TranquilityStack;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
@@ -29,6 +26,9 @@ import com.kushcola.bloodmagic.api.IBloodMagicAPI;
 import com.kushcola.bloodmagic.api.compat.EnumDemonWillType;
 import com.kushcola.bloodmagic.common.item.BloodOrb;
 import com.kushcola.bloodmagic.core.living.LivingUpgrade;
+import com.kushcola.bloodmagic.incense.EnumTranquilityType;
+import com.kushcola.bloodmagic.incense.IncenseTranquilityRegistry;
+import com.kushcola.bloodmagic.incense.TranquilityStack;
 import com.kushcola.bloodmagic.util.BMLog;
 import com.kushcola.bloodmagic.will.PlayerDemonWillHandler;
 
@@ -43,31 +43,33 @@ public class BloodMagicAPI implements IBloodMagicAPI
 	private final Map<String, Function<Player, NonNullList<ItemStack>>> inventoryProvider;
 
 	@Nonnull
-	private static final Lazy<ResourceKey<? extends Registry<Anointment>>> ANOINTMENT_REGISTRY_NAME = registryKey(Anointment.class, "anointment");
+	private static final Lazy<ResourceKey<? extends Registry<Anointment>>> ANOINTMENT_REGISTRY_NAME =
+			registryKey(Anointment.class, "anointment");
 	@Nonnull
-	private static final Lazy<ResourceKey<? extends Registry<BloodOrb>>> BLOOD_ORB_REGISTRY_NAME = registryKey(BloodOrb.class, "bloodorbs");
+	private static final Lazy<ResourceKey<? extends Registry<BloodOrb>>> BLOOD_ORB_REGISTRY_NAME =
+			registryKey(BloodOrb.class, "bloodorbs");
 	@Nonnull
-	private static final Lazy<ResourceKey<? extends Registry<LivingUpgrade>>> LIVING_UPGRADE_REGISTRY_NAME = registryKey(LivingUpgrade.class, "upgrades");
+	private static final Lazy<ResourceKey<? extends Registry<LivingUpgrade>>> LIVING_UPGRADE_REGISTRY_NAME =
+			registryKey(LivingUpgrade.class, "upgrades");
 
-	public BloodMagicAPI()
+	private BloodMagicAPI()
 	{
 		this.blacklist = new BloodMagicBlacklist();
 		this.recipeRegistrar = new BloodMagicRecipeRegistrar();
 		this.valueManager = new BloodMagicValueManager();
 		this.altarComponents = ArrayListMultimap.create();
-		this.inventoryProvider = new HashMap<String, Function<Player, NonNullList<ItemStack>>>();
+		this.inventoryProvider = new HashMap<>();
 	}
 
-	// Copied from Mekanism. Again.
+	// No more IForgeRegistryEntry bound
 	@Nonnull
-	private static <T>
-	Lazy<ResourceKey<? extends Registry<T>>> registryKey(
-			@Nonnull Class<T> compileTimeTypeValidator,
-			@Nonnull String path)
-	{
-		return Lazy.of(() ->
-				ResourceKey.createRegistryKey(new ResourceLocation(BloodMagic.MODID, path))
-		);
+	private static <T> Lazy<ResourceKey<? extends Registry<T>>> registryKey(
+			@SuppressWarnings("unused") @Nonnull Class<T> compileTimeTypeValidator,
+			@Nonnull String path
+	) {
+		return Lazy.of(() -> ResourceKey.createRegistryKey(
+				new ResourceLocation(BloodMagic.MODID, path)
+		));
 	}
 
 	@Nonnull
@@ -83,31 +85,21 @@ public class BloodMagicAPI implements IBloodMagicAPI
 	}
 
 	@Nonnull
-	public static ResourceKey<? extends Registry<LivingUpgrade>> LivingUpgradeRegistryName()
+	public static ResourceKey<? extends Registry<LivingUpgrade>> livingUpgradeRegistryName()
 	{
 		return LIVING_UPGRADE_REGISTRY_NAME.get();
 	}
 
 	@Nonnull
 	@Override
-	public BloodMagicBlacklist getBlacklist()
-	{
-		return blacklist;
-	}
+	public BloodMagicBlacklist getBlacklist() { return blacklist; }
 
-	@Nonnull
-	public BloodMagicRecipeRegistrar getRecipeRegistrar()
-	{
-		return recipeRegistrar;
-	}
-
-//
 	@Nonnull
 	@Override
-	public BloodMagicValueManager getValueManager()
-	{
-		return valueManager;
-	}
+	public BloodMagicValueManager getValueManager() { return valueManager; }
+
+	@Nonnull
+	public BloodMagicRecipeRegistrar getRecipeRegistrar() { return recipeRegistrar; }
 
 	@Nonnull
 	public Map<String, Function<Player, NonNullList<ItemStack>>> getInventoryProvider()
@@ -116,57 +108,82 @@ public class BloodMagicAPI implements IBloodMagicAPI
 	}
 
 	@Override
-	public void registerAltarComponent(@Nonnull BlockState state, @Nonnull String componentType)
-	{
+	public void registerAltarComponent(
+			@Nonnull BlockState state,
+			@Nonnull String componentType
+	) {
 		ComponentType component = ComponentType.getType(componentType);
-
 		if (component != null)
 		{
-			BMLog.API_VERBOSE.info("Registered {} as a {} altar component.", state, componentType);
+			BMLog.API_VERBOSE.info(
+					"Registered {} as a {} altar component.",
+					state, componentType
+			);
 			altarComponents.put(component, state);
-		} else
+		}
+		else
+		{
 			BMLog.API.warn("Invalid Altar component type: {}.", componentType);
+		}
 	}
 
 	@Override
-	public void unregisterAltarComponent(@Nonnull BlockState state, @Nonnull String componentType)
-	{
+	public void unregisterAltarComponent(
+			@Nonnull BlockState state,
+			@Nonnull String componentType
+	) {
 		ComponentType component = ComponentType.getType(componentType);
-
 		if (component != null)
 		{
-			BMLog.API_VERBOSE.info("Unregistered {} from being a {} altar component.", state, componentType);
+			BMLog.API_VERBOSE.info(
+					"Unregistered {} from being a {} altar component.",
+					state, componentType
+			);
 			altarComponents.remove(component, state);
-		} else
+		}
+		else
+		{
 			BMLog.API.warn("Invalid Altar component type: {}.", componentType);
+		}
 	}
 
 	@Override
-	public void registerTranquilityHandler(@Nonnull Predicate<BlockState> blockState, @Nonnull String tranquilityType, double value)
-	{
+	public void registerTranquilityHandler(
+			@Nonnull Predicate<BlockState> blockState,
+			@Nonnull String tranquilityType,
+			double value
+	) {
 		EnumTranquilityType type = EnumTranquilityType.getType(tranquilityType);
-
 		if (type != null)
 		{
-			IncenseTranquilityRegistry.registerTranquilityHandler((world, pos, block, state) -> blockState.test(state)
-					? new TranquilityStack(type, value)
-					: null);
-		} else
+			IncenseTranquilityRegistry.registerTranquilityHandler(
+					(world, pos, block, state) ->
+							blockState.test(state)
+									? new TranquilityStack(type, value)
+									: null
+			);
+		}
+		else
 		{
 			BMLog.API.warn("Invalid Tranquility type: {}.", tranquilityType);
 		}
 	}
 
 	@Override
-	public void registerInventoryProvider(String inventoryIdentifier, Function<Player, NonNullList<ItemStack>> provider)
-	{
+	public void registerInventoryProvider(
+			String inventoryIdentifier,
+			Function<Player, NonNullList<ItemStack>> provider
+	) {
 		inventoryProvider.put(inventoryIdentifier, provider);
 	}
 
 	@Override
 	public double getTotalDemonWill(String willType, Player player)
 	{
-		return PlayerDemonWillHandler.getTotalDemonWill(EnumDemonWillType.getType(willType), player);
+		return PlayerDemonWillHandler.getTotalDemonWill(
+				EnumDemonWillType.getType(willType),
+				player
+		);
 	}
 
 	@Nonnull

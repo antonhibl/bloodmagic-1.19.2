@@ -1,44 +1,39 @@
 package com.kushcola.bloodmagic.common.registration;
 
-import java.util.function.UnaryOperator;
-
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.IForgeRegistry;
-import net.minecraftforge.registries.IForgeRegistryEntry;
-import net.minecraftforge.registries.RegistryBuilder;
 
-public class WrappedForgeDeferredRegister<T extends IForgeRegistryEntry<T>> extends WrappedDeferredRegister<T>
-{
-	protected WrappedForgeDeferredRegister(String modid, IForgeRegistry<T> registry)
-	{
+/**
+ * A thin wrapper around Forge's DeferredRegister for vanilla or custom registries.
+ */
+public class WrappedForgeDeferredRegister<T> extends WrappedDeferredRegister<T> {
+	/**
+	 * For vanilla (& Forge-provided) registries:
+	 *
+	 * @param registry The ForgeRegistries.* instance (e.g. ForgeRegistries.ITEMS)
+	 * @param modid    Your mod ID
+	 */
+	public WrappedForgeDeferredRegister(IForgeRegistry<T> registry, String modid) {
 		super(DeferredRegister.create(registry, modid));
 	}
 
 	/**
-	 * @apiNote For use with custom registries
+	 * For custom registries:
+	 *
+	 * @param registryKey The ResourceKey of your custom registry
+	 * @param modid       Your mod ID
 	 */
-	protected WrappedForgeDeferredRegister(String modid, ResourceKey<? extends Registry<T>> registryName)
-	{
-		super(modid, registryName);
+	public WrappedForgeDeferredRegister(ResourceKey<? extends Registry<T>> registryKey, String modid) {
+		super(DeferredRegister.create(registryKey, modid));
 	}
 
 	/**
-	 * Only call this from mekanism and for custom registries
+	 * Hook the underlying DeferredRegister up to the mod’s event bus.
 	 */
-	public void createAndRegister(IEventBus bus, Class<T> type)
-	{
-		createAndRegister(bus, type, UnaryOperator.identity());
-	}
-
-	/**
-	 * Only call this from mekanism and for custom registries
-	 */
-	public void createAndRegister(IEventBus bus, Class<T> type, UnaryOperator<RegistryBuilder<T>> builder)
-	{
-		internal.makeRegistry(type, () -> builder.apply(new RegistryBuilder<>()));
-		register(bus);
+	public void register(IEventBus bus) {
+		internal.register(bus);
 	}
 }
