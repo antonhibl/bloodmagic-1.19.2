@@ -8,6 +8,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.Containers;
@@ -23,7 +24,9 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 import net.minecraftforge.items.wrapper.SidedInvWrapper;
 
-public class TileInventory extends TileBase implements Container
+import java.util.UUID;
+
+public abstract class TileInventory extends TileBase implements Container
 {
 	protected int[] syncedSlots = new int[0];
 	protected NonNullList<ItemStack> inventory;
@@ -333,6 +336,8 @@ public class TileInventory extends TileBase implements Container
 		if (handlerUp != null)
 			handlerUp.invalidate();
 	}
+
+    public abstract void sendMessage(Component component, UUID senderUUID);
 
 //	@Override
 //	public boolean hasCapability(Capability<?> capability, Direction facing)

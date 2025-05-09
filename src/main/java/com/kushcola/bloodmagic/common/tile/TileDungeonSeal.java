@@ -72,7 +72,7 @@ public class TileDungeonSeal extends TileBase
 						List<Component> toSend = Lists.newArrayList();
 //						if (!binding.getOwnerId().equals(player.getGameProfile().getId()))
 //							toSend.add(new TranslatableComponent(tooltipBase + "otherNetwork", binding.getOwnerName()));
-						toSend.add(new TranslatableComponent("tooltip.bloodmagic.blockeddoor"));
+						toSend.add(Component.translatable("tooltip.bloodmagic.blockeddoor"));
 						ChatUtil.sendNoSpam(player, toSend.toArray(new Component[toSend.size()]));
 						level.setBlock(worldPosition, BloodMagicBlocks.DUNGEON_TILE_SPECIAL.get().defaultBlockState(), 3);
 						level.playSound((Player) null, worldPosition.getX() + 0.5, worldPosition.getY() + 0.5, worldPosition.getZ() + 0.5, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.4F + 0.8F);

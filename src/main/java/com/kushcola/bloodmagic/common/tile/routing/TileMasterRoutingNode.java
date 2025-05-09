@@ -557,6 +557,6 @@ public class TileMasterRoutingNode extends TileInventory implements IMasterRouti
 	@Override
 	public Component getDisplayName()
 	{
-		return new TextComponent("Master Routing Node");
+		return Component.literal("Master Routing Node");
 	}
 }

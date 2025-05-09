@@ -75,9 +75,8 @@ public class BloodMagic {
 		BloodMagicTileEntities.TILE_ENTITIES.register(modBus);
 		BloodMagicEntityTypes.ENTITY_TYPES.register(modBus);
 		BloodMagicRecipeSerializers.RECIPE_SERIALIZERS.register(modBus);
-
-		LivingArmorRegistrar.UPGRADES.createAndRegister(modBus, LivingUpgrade.class);
-		AnointmentRegistrar.ANOINTMENTS.createAndRegister(modBus, Anointment.class);
+		LivingArmorRegistrar.UPGRADES.register(modBus);
+		AnointmentRegistrar.ANOINTMENTS.register(modBus);
 
 		// Lifecycle listeners
 		modBus.addListener(this::commonSetup);

@@ -71,7 +71,7 @@ public class TileOutputRoutingNode extends TileFilteredRoutingNode implements IO
 	@Override
 	public Component getDisplayName()
 	{
-		return new TextComponent("Output Routing Node");
+		return Component.literal("Output Routing Node");
 	}
 
 //	@Override

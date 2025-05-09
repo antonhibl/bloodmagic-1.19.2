@@ -6,6 +6,7 @@ import java.util.UUID;
 import com.kushcola.bloodmagic.common.container.tile.ContainerTeleposer;
 import com.kushcola.bloodmagic.util.Constants;
 import com.kushcola.bloodmagic.util.Utils;
+import com.mojang.brigadier.ParseResults;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
@@ -234,12 +235,12 @@ public class TileTeleposer extends TileInventory implements MenuProvider, Comman
 	@Override
 	public Component getDisplayName()
 	{
-		return new TextComponent("Teleposer");
+		return Component.literal("Teleposer");
 	}
 
-	public CommandSourceStack getCommandSource(ServerLevel world)
+	public ParseResults<CommandSourceStack> getCommandSource(ServerLevel world)
 	{
-		return new CommandSourceStack(this, new Vec3(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ()), Vec2.ZERO, world, 2, "Teleposer", new TextComponent("Teleposer"), world.getServer(), (Entity) null);
+		return new CommandSourceStack(this, new Vec3(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ()), Vec2.ZERO, world, 2, "Teleposer", Component.literal("Teleposer"), world.getServer(), (Entity) null);
 	}
 
 	public void teleportPlayerToLocation(ServerLevel serverWorld, Player player, ResourceKey<Level> destination, double x, double y, double z)
@@ -262,6 +263,11 @@ public class TileTeleposer extends TileInventory implements MenuProvider, Comman
 	public void sendMessage(Component component, UUID senderUUID)
 	{
 		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void sendSystemMessage(Component p_230797_) {
 
 	}
 

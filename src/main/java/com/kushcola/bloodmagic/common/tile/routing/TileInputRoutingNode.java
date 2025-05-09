@@ -71,7 +71,7 @@ public class TileInputRoutingNode extends TileFilteredRoutingNode implements IIn
 	@Override
 	public Component getDisplayName()
 	{
-		return new TextComponent("Input Routing Node");
+		return Component.literal("Input Routing Node");
 	}
 
 //    @Override

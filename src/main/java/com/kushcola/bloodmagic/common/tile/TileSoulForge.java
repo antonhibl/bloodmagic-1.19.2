@@ -244,7 +244,7 @@ public class TileSoulForge extends TileInventory implements MenuProvider, IDemon
 	@Override
 	public Component getDisplayName()
 	{
-		return new TextComponent("Hellfire Forge");
+		return Component.literal("Hellfire Forge");
 	}
 
 	public boolean hasSoulGemOrSoul()
