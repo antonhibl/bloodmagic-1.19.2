@@ -1,0 +1,87 @@
+package com.kushcola.bloodmagic.client.screens;
+
+import com.kushcola.bloodmagic.common.container.item.ContainerHolding;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.Container;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import com.kushcola.bloodmagic.BloodMagic;
+import com.kushcola.bloodmagic.common.item.BloodMagicItems;
+import com.kushcola.bloodmagic.common.item.sigil.ItemSigilHolding;
+
+public class ScreenHolding extends ScreenBase<ContainerHolding>
+{
+	private static final ResourceLocation background = BloodMagic.rl("gui/sigilholding.png");
+	public Container tileTable;
+	private Player player;
+
+	public ScreenHolding(ContainerHolding container, Inventory playerInventory, Component title)
+	{
+		super(container, playerInventory, title);
+		tileTable = container.inventoryHolding;
+		imageWidth = 176;
+		imageHeight = 121;
+		this.player = playerInventory.player;
+	}
+
+	@Override
+	public ResourceLocation getBackground()
+	{
+		return background;
+	}
+
+	@Override
+	protected void renderLabels(PoseStack stack, int mouseX, int mouseY)
+	{
+//		this.font.draw(stack, new TranslationTextComponent("tile.bloodmagic.alchemytable.name"), 8, 5, 4210752);
+//		this.font.draw(stack, new TranslationTextComponent("container.inventory"), 8, 111, 4210752);
+		this.font.draw(stack, new TranslatableComponent("item.bloodmagic.sigilofholding"), 53, 4, 4210752);
+	}
+
+	@Override
+	protected void renderBg(PoseStack stack, float partialTicks, int mouseX, int mouseY)
+	{
+		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+		RenderSystem.setShaderTexture(0, background);
+//		int i = (this.width - this.xSize) / 2;
+//		int j = (this.height - this.ySize) / 2;
+//		this.blit(stack, i, j, 0, 0, this.xSize, this.ySize);
+//
+//		int l = this.getCookProgressScaled(90);
+//		this.blit(stack, i + 115, j + 14 + 90 - l, 176, 90 - l, 18, l);
+//
+//		for (int slotId = 0; slotId < 6; slotId++)
+//		{
+//			if (!((TileAlchemyTable) tileTable).isInputSlotAccessible(slotId))
+//			{
+//				Slot slot = this.getContainer().getSlot(slotId);
+//
+//				this.blit(stack, i + slot.xPos, j + slot.yPos, 195, 1, 16, 16);
+//			}
+//		}
+
+		// draw your Gui here, only thing you need to change is the path
+//        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+//        this.mc.getTextureManager().bindTexture(texture);
+		int x = (width - imageWidth) / 2;
+		int y = (height - imageHeight) / 2;
+		this.blit(stack, x, y, 0, 0, imageWidth, imageHeight);
+		ItemStack held = player.getItemInHand(InteractionHand.MAIN_HAND);
+		if (!held.isEmpty() && held.getItem() == BloodMagicItems.HOLDING_SIGIL.get())
+		{
+//            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+			this.blit(stack, 4 + x + 36 * ItemSigilHolding.getCurrentItemOrdinal(player.getMainHandItem()), y + 13, 0, 123, 24, 24);
+		}
+	}
+
+//
+
+}

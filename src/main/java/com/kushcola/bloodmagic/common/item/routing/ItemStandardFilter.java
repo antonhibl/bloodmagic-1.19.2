@@ -1,0 +1,114 @@
+package com.kushcola.bloodmagic.common.item.routing;
+
+import java.util.List;
+
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.network.NetworkHooks;
+import com.kushcola.bloodmagic.common.item.inventory.InventoryFilter;
+import com.kushcola.bloodmagic.common.item.inventory.ItemInventory;
+import com.kushcola.bloodmagic.util.Constants;
+import com.kushcola.bloodmagic.util.GhostItemHelper;
+import com.kushcola.bloodmagic.util.Utils;
+
+public class ItemStandardFilter extends ItemCompositeFilter
+{
+	@Override
+	public InteractionResultHolder<ItemStack> use(Level world, Player player, InteractionHand hand)
+	{
+		ItemStack stack = player.getItemInHand(hand);
+		if (!world.isClientSide)
+		{
+			Utils.setUUID(stack);
+
+			if (player instanceof ServerPlayer)
+			{
+				NetworkHooks.openGui((ServerPlayer) player, this, buf -> buf.writeItemStack(stack, false));
+			}
+		}
+
+		return new InteractionResultHolder<>(InteractionResult.SUCCESS, stack);
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	public void appendHoverText(ItemStack filterStack, Level world, List<Component> tooltip, TooltipFlag flag)
+	{
+		tooltip.add(new TranslatableComponent("tooltip.bloodmagic.basicfilter.desc").withStyle(ChatFormatting.ITALIC).withStyle(ChatFormatting.GRAY));
+
+		if (filterStack.getTag() == null)
+		{
+			return;
+		}
+
+		List<ItemStack> nestedFilters = getNestedFilters(filterStack);
+		if (nestedFilters.size() > 0)
+		{
+			boolean sneaking = Screen.hasShiftDown();
+			if (!sneaking)
+			{
+				tooltip.add(new TranslatableComponent("tooltip.bloodmagic.extraInfo").withStyle(ChatFormatting.BLUE));
+			} else
+			{
+				tooltip.add(new TranslatableComponent("tooltip.bloodmagic.contained_filters").withStyle(ChatFormatting.BLUE));
+				for (ItemStack nestedStack : nestedFilters)
+				{
+					tooltip.add(nestedStack.getHoverName());
+				}
+			}
+		}
+
+		int whitelistState = this.getCurrentButtonState(filterStack, Constants.BUTTONID.BLACKWHITELIST, 0);
+		boolean isWhitelist = whitelistState == 0;
+
+		if (isWhitelist)
+		{
+			tooltip.add(new TranslatableComponent("tooltip.bloodmagic.filter.whitelist").withStyle(ChatFormatting.GRAY));
+		} else
+		{
+			tooltip.add(new TranslatableComponent("tooltip.bloodmagic.filter.blacklist").withStyle(ChatFormatting.GRAY));
+		}
+
+		ItemInventory inv = new InventoryFilter(filterStack);
+		for (int i = 0; i < inv.getContainerSize(); i++)
+		{
+			ItemStack stack = inv.getItem(i);
+			if (stack.isEmpty())
+			{
+				continue;
+			}
+
+			if (isWhitelist)
+			{
+				int amount = GhostItemHelper.getItemGhostAmount(stack);
+				if (amount > 0)
+				{
+					tooltip.add(new TranslatableComponent("tooltip.bloodmagic.filter.count", amount, stack.getHoverName()));
+				} else
+				{
+					tooltip.add(new TranslatableComponent("tooltip.bloodmagic.filter.all", stack.getHoverName()));
+				}
+			} else
+			{
+				tooltip.add(stack.getHoverName());
+			}
+		}
+	}
+
+	@Override
+	public IFilterKey getFilterKey(ItemStack filterStack, int slot, ItemStack ghostStack, int amount)
+	{
+		return new BasicFilterKey(ghostStack, amount);
+	}
+}

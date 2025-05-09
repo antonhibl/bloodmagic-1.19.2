@@ -1,0 +1,184 @@
+package com.kushcola.bloodmagic.common.item.sigil;
+
+import java.util.List;
+
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.common.MinecraftForge;
+import com.kushcola.bloodmagic.core.data.Binding;
+import com.kushcola.bloodmagic.core.data.SoulTicket;
+import com.kushcola.bloodmagic.event.ItemBindEvent;
+import com.kushcola.bloodmagic.util.Constants;
+import com.kushcola.bloodmagic.util.helper.BindableHelper;
+import com.kushcola.bloodmagic.util.helper.NetworkHelper;
+import com.kushcola.bloodmagic.util.helper.PlayerHelper;
+import com.kushcola.bloodmagic.util.helper.TextHelper;
+
+import com.kushcola.bloodmagic.common.tile.TileTeleposer;
+
+public class ItemSigilTeleposition extends ItemSigilBase
+{
+	public ItemSigilTeleposition()
+	{
+		super("teleposition", 1000);
+	}
+
+	@Override
+	public InteractionResultHolder<ItemStack> use(Level world, Player player, InteractionHand hand)
+	{
+		ItemStack stack = player.getItemInHand(hand);
+		if (stack.getItem() instanceof ISigil.Holding)
+			stack = ((Holding) stack.getItem()).getHeldItem(stack, player);
+		if (PlayerHelper.isFakePlayer(player))
+			return new InteractionResultHolder<>(InteractionResult.FAIL, stack);
+
+		if (world.isClientSide || isUnusable(stack))
+		{
+			return new InteractionResultHolder<>(InteractionResult.CONSUME, stack);
+		}
+
+		Level storedWorld = getStoredWorld(stack, world);
+		if (storedWorld != null && storedWorld instanceof ServerLevel)
+		{
+			ResourceKey<Level> key = getStoredKey(stack, world);
+			BlockPos telePos = getStoredPos(stack);
+			BlockEntity tile = storedWorld.getBlockEntity(telePos);
+			if (tile instanceof TileTeleposer)
+			{
+				((TileTeleposer) tile).teleportPlayerToLocation((ServerLevel) storedWorld, player, key, telePos.getX() + 0.5, telePos.getY() + 1, telePos.getZ() + 0.5);
+				if (!player.isCreative())
+					this.setUnusable(stack, !NetworkHelper.getSoulNetwork(getBinding(stack)).syphonAndDamage(player, SoulTicket.item(stack, world, player, getLpUsed())).isSuccess());
+
+				storedWorld.playSound(null, telePos.getX(), telePos.getY(), telePos.getZ(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS, 1, 1);
+				world.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS, 1, 1);
+
+				return new InteractionResultHolder<>(InteractionResult.PASS, stack);
+			}
+		}
+
+		return new InteractionResultHolder<>(InteractionResult.PASS, stack);
+	}
+
+	@Override
+	public InteractionResult useOn(UseOnContext context)
+	{
+		ItemStack stack = context.getItemInHand();
+		BlockPos pos = context.getClickedPos();
+		Level world = context.getLevel();
+		Player player = context.getPlayer();
+
+		if (world.getBlockEntity(pos) instanceof TileTeleposer)
+		{
+			setStoredPos(stack, pos);
+			setWorld(stack, world);
+
+			Binding binding = getBinding(stack);
+			if (binding == null)
+			{ // If the binding is null, let's create one
+				if (onBind(player, stack))
+				{
+					ItemBindEvent toPost = new ItemBindEvent(player, stack);
+					if (!MinecraftForge.EVENT_BUS.post(toPost))
+						BindableHelper.applyBinding(stack, player);
+				}
+			}
+		}
+
+		return InteractionResult.SUCCESS;
+	}
+
+	public void setStoredPos(ItemStack stack, BlockPos pos)
+	{
+		if (!stack.hasTag())
+		{
+			stack.setTag(new CompoundTag());
+		}
+
+		CompoundTag tag = stack.getTag();
+
+		tag.putInt(Constants.NBT.X_COORD, pos.getX());
+		tag.putInt(Constants.NBT.Y_COORD, pos.getY());
+		tag.putInt(Constants.NBT.Z_COORD, pos.getZ());
+	}
+
+	public BlockPos getStoredPos(ItemStack stack)
+	{
+		if (!stack.hasTag())
+		{
+			stack.setTag(new CompoundTag());
+		}
+
+		CompoundTag tag = stack.getTag();
+
+		return new BlockPos(tag.getInt(Constants.NBT.X_COORD), tag.getInt(Constants.NBT.Y_COORD), tag.getInt(Constants.NBT.Z_COORD));
+	}
+
+	public void setWorld(ItemStack stack, Level world)
+	{
+		String worldKey = world.dimension().location().toString();
+		if (!stack.hasTag())
+		{
+			stack.setTag(new CompoundTag());
+		}
+
+		stack.getTag().putString(Constants.NBT.WORLD, worldKey);
+	}
+
+	public ResourceKey<Level> getStoredKey(ItemStack stack, Level world)
+	{
+		if (!stack.hasTag())
+		{
+			return null;
+		}
+
+		String worldKey = stack.getTag().getString(Constants.NBT.WORLD);
+		ResourceKey<Level> registryKey = ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(worldKey));
+		return registryKey;
+	}
+
+	public Level getStoredWorld(ItemStack stack, Level world)
+	{
+		ResourceKey<Level> registryKey = getStoredKey(stack, world);
+		if (registryKey == null || world.getServer() == null)
+		{
+			return null;
+		}
+
+		return world.getServer().getLevel(registryKey);
+	}
+
+	@Override
+	@OnlyIn(Dist.CLIENT)
+	public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag flag)
+	{
+		super.appendHoverText(stack, world, tooltip, flag);
+		ResourceKey<Level> storedKey = getStoredKey(stack, world);
+//		World storedWorld = getStoredWorld(stack, world);
+		if (storedKey != null)
+		{
+			BlockPos storedPos = getStoredPos(stack);
+			tooltip.add(new TranslatableComponent(TextHelper.localizeEffect("tooltip.bloodmagic.telepositionfocus.coords", storedPos.getX(), storedPos.getY(), storedPos.getZ())).withStyle(ChatFormatting.GRAY));
+			tooltip.add(new TranslatableComponent("tooltip.bloodmagic.telepositionfocus.world", new TranslatableComponent(storedKey.location().toString())).withStyle(ChatFormatting.GRAY));
+		}
+	}
+}

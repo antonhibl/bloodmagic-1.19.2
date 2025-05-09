@@ -1,0 +1,72 @@
+package com.kushcola.bloodmagic.common.item;
+
+import java.util.List;
+
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import com.kushcola.bloodmagic.BloodMagic;
+
+public class ItemSyntheticPoint extends Item implements ILivingUpgradePointsProvider
+{
+	public ItemSyntheticPoint()
+	{
+		super(new Item.Properties().tab(BloodMagic.TAB));
+	}
+
+	@Override
+	@OnlyIn(Dist.CLIENT)
+	public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag flag)
+	{
+		tooltip.add(new TranslatableComponent("tooltip.bloodmagic.syntheticpoint.desc").withStyle(ChatFormatting.GRAY));
+	}
+
+	@Override
+	public int getAvailableUpgradePoints(ItemStack stack, int drain)
+	{
+		return Math.min(getTotalUpgradePoints(stack), drain);
+	}
+
+	public int getTotalUpgradePoints(ItemStack stack)
+	{
+		return stack.getCount();
+	}
+
+	@Override
+	public ItemStack getResultingStack(ItemStack stack, int syphonedPoints)
+	{
+		if (canSyphonPoints(stack, syphonedPoints))
+		{
+			ItemStack newStack = stack.copy();
+			newStack.setCount(Math.max(0, stack.getCount() - syphonedPoints));
+
+			return newStack;
+		}
+
+		return stack;
+	}
+
+	@Override
+	public int getExcessUpgradePoints(ItemStack stack, int drain)
+	{
+		return getTotalUpgradePoints(stack) - getAvailableUpgradePoints(stack, drain);
+	}
+
+	@Override
+	public boolean canSyphonPoints(ItemStack stack, int drain)
+	{
+		return true;
+	}
+
+	@Override
+	public int getPriority(ItemStack stack)
+	{
+		return 5;
+	}
+}

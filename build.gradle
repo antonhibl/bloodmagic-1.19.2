@@ -10,22 +10,42 @@ buildscript {
         classpath group: 'org.spongepowered', name: 'mixingradle', version: '0.7-SNAPSHOT'
     }
 }
+
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.spongepowered.mixin'
 // Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
+// Top-level repositories for resolving mod jars and deobf transformations
+repositories {
+    // ForgeGradle does NOT auto-add these if you define your own repositories block:
+    mavenCentral()
+    maven { url 'https://maven.minecraftforge.net' }
 
-version = '1.18.2-3.2.6-41'
-group = 'com.yourname.modid' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+    // Any other repos you already had:
+    maven { url 'https://dvs1.progwml6.com/files/maven/' }
+    maven { url 'https://maven.blamejared.com' }
+    maven { url 'https://maven.theillusivec4.top/' } // Curios’s own repo (optional, for source/artifacts)
+
+    // CurseForge Maven—needed to fetch JEI, Patchouli, Curios raw jars
+    maven {
+        url 'https://cursemaven.com'
+        content {
+            includeGroup 'curse.maven'
+        }
+    }
+}
+
+version = '1.19.2-3.2.6-41'
+group = 'com.kushcola.bloodmagic' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'BloodMagic'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
 minecraft {
-    mappings channel: 'official', version: '1.18.2'
+    mappings channel: 'official', version: '1.19.2'
 
     runs {
         client {
@@ -116,23 +136,16 @@ dependencies {
     // Specify the version of Minecraft to use, If this is any group other then 'net.minecraft' it is assumed
     // that the dep is a ForgeGradle 'patcher' dependency. And it's patches will be applied.
     // The userdev artifact is a special name and will get all sorts of transformations applied to it.
-    minecraft 'net.minecraftforge:forge:1.18.2-40.1.51'
+    minecraft 'net.minecraftforge:forge:1.19.2-43.4.0'
     
-    // compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}:api")
-    // runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
-        
+    compileOnly fg.deobf("curse.maven:jei-238222:5846858")
+    runtimeOnly fg.deobf("curse.maven:jei-238222:5846858")
     
+    compileOnly fg.deobf("curse.maven:patchouli-306770:4031402")
+    runtimeOnly fg.deobf("curse.maven:patchouli-306770:4031402")
     
-    compileOnly fg.deobf("mezz.jei:jei-1.18.2:9.5.5.174:api")
-    runtimeOnly fg.deobf("mezz.jei:jei-1.18.2:9.5.5.174")
-    
-    compileOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}:api")
-    runtimeOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}")
-
-//    compileOnly fg.deobf("com.blamejared.crafttweaker:CraftTweaker-1.18.2:9.1.154")
-    
-    runtimeOnly fg.deobf("top.theillusivec4.curios:curios-forge:${curios_version}")
-    compileOnly fg.deobf("top.theillusivec4.curios:curios-forge:${curios_version}:api")
+    runtimeOnly fg.deobf("curse.maven:curios-309927:5843737")
+    compileOnly fg.deobf("curse.maven:curios-309927:5843737")
 }
 
 jar {
