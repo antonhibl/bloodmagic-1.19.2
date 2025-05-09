@@ -15,7 +15,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -103,7 +102,7 @@ public abstract class Ritual
 	/**
 	 * Called when the player attempts to activate the ritual.
 	 * <p>
-	 * {@link WayofTime.bloodmagic.tile.TileMasterRitualStone#activateRitual(ItemStack, PlayerEntity, Ritual)}
+	 * {@link com.kushcola.bloodmagic.tile.TileMasterRitualStone#activateRitual(ItemStack, PlayerEntity, Ritual)}
 	 *
 	 * @param masterRitualStone - The {@link IMasterRitualStone} that the ritual is
 	 *                          bound to
@@ -121,7 +120,7 @@ public abstract class Ritual
 	/**
 	 * Called every {@link #getRefreshTime()} ticks while active.
 	 * <p>
-	 * {@link WayofTime.bloodmagic.tile.TileMasterRitualStone#performRitual(World, BlockPos)}
+	 * {@link com.kushcola.bloodmagic.tile.TileMasterRitualStone#performRitual(World, BlockPos)}
 	 *
 	 * @param masterRitualStone - The {@link IMasterRitualStone} that the ritual is
 	 *                          bound to
@@ -131,7 +130,7 @@ public abstract class Ritual
 	/**
 	 * Called when the ritual is stopped for a given {@link Ritual.BreakType}.
 	 * <p>
-	 * {@link WayofTime.bloodmagic.tile.TileMasterRitualStone#stopRitual(Ritual.BreakType)}
+	 * {@link com.kushcola.bloodmagic.tile.TileMasterRitualStone#stopRitual(Ritual.BreakType)}
 	 *
 	 * @param masterRitualStone - The {@link IMasterRitualStone} that the ritual is
 	 *                          bound to
@@ -261,7 +260,7 @@ public abstract class Ritual
 		AreaDescriptor descriptor = this.getBlockRange(range);
 		if (descriptor == null)
 		{
-			return new TranslatableComponent("ritual.bloodmagic.blockRange.tooBig", "?");
+			return Component.translatable("ritual.bloodmagic.blockRange.tooBig", "?");
 		}
 
 		List<EnumDemonWillType> willConfig = master.getActiveWillConfig();
@@ -273,26 +272,26 @@ public abstract class Ritual
 
 		if (maxVolume > 0 && descriptor.getVolumeForOffsets(offset1, offset2) > maxVolume)
 		{
-			return new TranslatableComponent("ritual.bloodmagic.blockRange.tooBig", maxVolume);
+			return Component.translatable("ritual.bloodmagic.blockRange.tooBig", maxVolume);
 		} else
 		{
-			return new TranslatableComponent("ritual.bloodmagic.blockRange.tooFar", maxVertical, maxHorizontal);
+			return Component.translatable("ritual.bloodmagic.blockRange.tooFar", maxVertical, maxHorizontal);
 		}
 	}
 
 	public Component[] provideInformationOfRitualToPlayer(Player player)
 	{
-		return new Component[] { new TranslatableComponent(this.getTranslationKey() + ".info") };
+		return new Component[] { Component.translatable(this.getTranslationKey() + ".info") };
 	}
 
 	public Component provideInformationOfRangeToPlayer(Player player, String range)
 	{
 		if (getListOfRanges().contains(range))
 		{
-			return new TranslatableComponent(this.getTranslationKey() + "." + range + ".info");
+			return Component.translatable(this.getTranslationKey() + "." + range + ".info");
 		} else
 		{
-			return new TranslatableComponent("ritual.bloodmagic.blockRange.noRange");
+			return Component.translatable("ritual.bloodmagic.blockRange.noRange");
 		}
 	}
 

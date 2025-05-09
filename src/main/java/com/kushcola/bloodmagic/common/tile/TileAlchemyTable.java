@@ -2,6 +2,7 @@ package com.kushcola.bloodmagic.common.tile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import com.kushcola.bloodmagic.api.event.BloodMagicCraftedEvent;
 import com.kushcola.bloodmagic.common.container.tile.ContainerAlchemyTable;
@@ -19,7 +20,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -238,6 +238,11 @@ public class TileAlchemyTable extends TileInventory implements WorldlyContainer,
 		}
 
 		return super.getCapability(capability, facing);
+	}
+
+	@Override
+	public void sendMessage(Component component, UUID senderUUID) {
+
 	}
 
 	@Override
@@ -747,6 +752,6 @@ public class TileAlchemyTable extends TileInventory implements WorldlyContainer,
 	@Override
 	public Component getDisplayName()
 	{
-		return new TextComponent("Alchemy Table");
+		return Component.literal("Alchemy Table");
 	}
 }

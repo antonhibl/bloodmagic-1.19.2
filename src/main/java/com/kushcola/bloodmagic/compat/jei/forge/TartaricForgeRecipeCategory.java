@@ -17,7 +17,6 @@ import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -59,8 +58,8 @@ public class TartaricForgeRecipeCategory implements IRecipeCategory<RecipeTartar
 		List<Component> tooltip = Lists.newArrayList();
 		if (mouseX >= 40 && mouseX <= 60 && mouseY >= 21 && mouseY <= 34)
 		{
-			tooltip.add(new TranslatableComponent("jei.bloodmagic.recipe.minimumsouls", ChatUtil.DECIMAL_FORMAT.format(recipe.getMinimumSouls())));
-			tooltip.add(new TranslatableComponent("jei.bloodmagic.recipe.soulsdrained", ChatUtil.DECIMAL_FORMAT.format(recipe.getSoulDrain())));
+			tooltip.add(Component.translatable("jei.bloodmagic.recipe.minimumsouls", ChatUtil.DECIMAL_FORMAT.format(recipe.getMinimumSouls())));
+			tooltip.add(Component.translatable("jei.bloodmagic.recipe.soulsdrained", ChatUtil.DECIMAL_FORMAT.format(recipe.getSoulDrain())));
 		}
 		return tooltip;
 	}
@@ -69,7 +68,7 @@ public class TartaricForgeRecipeCategory implements IRecipeCategory<RecipeTartar
 	@Override
 	public Component getTitle()
 	{
-		return new TranslatableComponent("jei.bloodmagic.recipe.soulforge");
+		return Component.translatable("jei.bloodmagic.recipe.soulforge");
 	}
 
 	@Nonnull

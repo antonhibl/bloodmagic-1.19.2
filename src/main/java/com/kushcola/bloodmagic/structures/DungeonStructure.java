@@ -8,6 +8,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureManager;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
@@ -47,7 +49,7 @@ public class DungeonStructure
 //		placeInWorld
 
 //		template.get().placeInWorldChunk(world, finalPos, settings, rand);
-		template.get().placeInWorld(world, finalPos, finalPos, settings, rand, 2);
+		template.get().placeInWorld((ServerLevelAccessor) world, finalPos, finalPos, settings, (RandomSource) rand, 2);
 //		template.placeInWorld(world, finalPos, settings, rand);
 
 		return true;

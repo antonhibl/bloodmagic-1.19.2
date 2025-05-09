@@ -1,8 +1,6 @@
 package com.kushcola.bloodmagic.common.tile;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -21,7 +19,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -37,7 +34,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidAttributes;
+import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
@@ -58,8 +55,8 @@ public class TileAlchemicalReactionChamber extends TileInventory implements Menu
 	public static final int INPUT_BUCKET_SLOT = 7;
 	public static final int OUTPUT_BUCKET_SLOT = 8;
 
-	public FluidTank inputTank = new FluidTank(FluidAttributes.BUCKET_VOLUME * 20);
-	public FluidTank outputTank = new FluidTank(FluidAttributes.BUCKET_VOLUME * 20);
+	public FluidTank inputTank = new FluidTank(FluidType.BUCKET_VOLUME * 20);
+	public FluidTank outputTank = new FluidTank(FluidType.BUCKET_VOLUME * 20);
 
 	public double currentProgress = 0;
 	public static final double DEFAULT_SPEED = 0.005;
@@ -341,7 +338,7 @@ public class TileAlchemicalReactionChamber extends TileInventory implements Menu
 				inputTank.drain(inputFluidStack, FluidAction.EXECUTE);
 			}
 
-			outputSlotHandler.canTransferAllItemsToSlots(recipe.getAllOutputs(level.random, inputStack, toolStack, modifier), false);
+			outputSlotHandler.canTransferAllItemsToSlots(recipe.getAllOutputs((Random) level.random, inputStack, toolStack, modifier), false);
 			outputTank.fill(recipe.getFluidOutput().copy(), FluidAction.EXECUTE);
 			consumeInventory(recipe.getRequiredInputCount(), recipe.getConsumeIngredient(), recipe.breakTool());
 		}
@@ -418,7 +415,7 @@ public class TileAlchemicalReactionChamber extends TileInventory implements Menu
 	@Override
 	public Component getDisplayName()
 	{
-		return new TextComponent("Alchemical Reaction Chamber");
+		return Component.literal("Alchemical Reaction Chamber");
 	}
 
 	public double getProgressForGui()
@@ -495,6 +492,11 @@ public class TileAlchemicalReactionChamber extends TileInventory implements Menu
 			fluidOptional.invalidate();
 			fluidOptional = null;
 		}
+	}
+
+	@Override
+	public void sendMessage(Component component, UUID senderUUID) {
+
 	}
 
 	@Override

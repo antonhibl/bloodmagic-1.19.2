@@ -7,7 +7,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import com.kushcola.bloodmagic.BloodMagic;
 
 public abstract class ScreenBase<T extends AbstractContainerMenu> extends AbstractContainerScreen<T>
@@ -61,8 +60,8 @@ public abstract class ScreenBase<T extends AbstractContainerMenu> extends Abstra
 	}
 
 //
-	protected static TranslatableComponent getTrans(String key, Object... args)
+	protected static Component getTrans(String key, Object... args)
 	{
-		return new TranslatableComponent(BloodMagic.MODID + "." + key, args);
+		return Component.translatable(BloodMagic.MODID + "." + key, args);
 	}
 }

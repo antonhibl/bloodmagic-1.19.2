@@ -543,29 +543,29 @@ public class ClientHandler
 		if (!fluid.isEmpty())
 			tooltip.add(applyFormat(fluid.getDisplayName(), fluid.getFluid().getAttributes().getRarity(fluid).color));
 		else
-			tooltip.add(new TranslatableComponent("gui.bloodmagic.empty"));
+			tooltip.add(Component.translatable("gui.bloodmagic.empty"));
 //		if (fluid.getFluid() instanceof IEFluid)
 //			((IEFluid) fluid.getFluid()).addTooltipInfo(fluid, null, tooltip);
 
 		if (mc().options.advancedItemTooltips && !fluid.isEmpty())
 		{
 			if (!Screen.hasShiftDown())
-				tooltip.add(new TranslatableComponent("tooltip.bloodmagic.holdShiftForInfo"));
+				tooltip.add(Component.translatable("tooltip.bloodmagic.holdShiftForInfo"));
 			else
 			{
 				// TODO translation keys
-				tooltip.add(applyFormat(new TextComponent("Fluid Registry: " + fluid.getFluid().getRegistryName()), ChatFormatting.DARK_GRAY));
-				tooltip.add(applyFormat(new TextComponent("Density: " + fluid.getFluid().getAttributes().getDensity(fluid)), ChatFormatting.DARK_GRAY));
-				tooltip.add(applyFormat(new TextComponent("Temperature: " + fluid.getFluid().getAttributes().getTemperature(fluid)), ChatFormatting.DARK_GRAY));
-				tooltip.add(applyFormat(new TextComponent("Viscosity: " + fluid.getFluid().getAttributes().getViscosity(fluid)), ChatFormatting.DARK_GRAY));
-				tooltip.add(applyFormat(new TextComponent("NBT Data: " + fluid.getTag()), ChatFormatting.DARK_GRAY));
+				tooltip.add(applyFormat(Component.literal("Fluid Registry: " + fluid.getFluid().getRegistryName()), ChatFormatting.DARK_GRAY));
+				tooltip.add(applyFormat(Component.literal("Density: " + fluid.getFluid().getAttributes().getDensity(fluid)), ChatFormatting.DARK_GRAY));
+				tooltip.add(applyFormat(Component.literal("Temperature: " + fluid.getFluid().getAttributes().getTemperature(fluid)), ChatFormatting.DARK_GRAY));
+				tooltip.add(applyFormat(Component("Viscosity: " + fluid.getFluid().getAttributes().getViscosity(fluid)), ChatFormatting.DARK_GRAY));
+				tooltip.add(applyFormat(Component.literal("NBT Data: " + fluid.getTag()), ChatFormatting.DARK_GRAY));
 			}
 		}
 
 		if (tankCapacity > 0)
-			tooltip.add(applyFormat(new TextComponent(fluid.getAmount() + "/" + tankCapacity + "mB"), ChatFormatting.GRAY));
+			tooltip.add(applyFormat(Component.literal(fluid.getAmount() + "/" + tankCapacity + "mB"), ChatFormatting.GRAY));
 		else
-			tooltip.add(applyFormat(new TextComponent(fluid.getAmount() + "mB"), ChatFormatting.GRAY));
+			tooltip.add(applyFormat(Component.literal(fluid.getAmount() + "mB"), ChatFormatting.GRAY));
 	}
 
 	public static MutableComponent applyFormat(Component component, ChatFormatting... color)

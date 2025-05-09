@@ -2,6 +2,7 @@ package com.kushcola.bloodmagic.common.tile;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -33,7 +34,6 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.model.data.ModelDataManager;
 import net.minecraftforge.client.model.data.ModelData;
-import net.minecraftforge.client.model.data.ModelDataMap;
 import net.minecraftforge.client.model.data.ModelProperty;
 
 public class TileMimic extends TileInventory
@@ -294,7 +294,7 @@ public class TileMimic extends TileInventory
 	@Override
 	public ModelData getModelData()
 	{
-		return new ModelDataMap.Builder().withInitial(MIMIC, mimic).build();
+		return new ModelData.Builder().withInitial(MIMIC, mimic).build();
 	}
 
 	@Override
@@ -350,5 +350,10 @@ public class TileMimic extends TileInventory
 		}
 
 		dropMimicedTileInventory();
+	}
+
+	@Override
+	public void sendMessage(Component component, UUID senderUUID) {
+
 	}
 }

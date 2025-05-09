@@ -89,7 +89,7 @@ public class TileInversionPillar extends TileBase implements CommandSource
 
 	public CommandSourceStack getCommandSource(ServerLevel world)
 	{
-		return new CommandSourceStack(this, new Vec3(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ()), Vec2.ZERO, world, 2, "Inversion Pillar", new TextComponent("Inversion Pillar"), world.getServer(), (Entity) null);
+		return new CommandSourceStack(this, new Vec3(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ()), Vec2.ZERO, world, 2, "Inversion Pillar", Component.literal("Inversion Pillar"), world.getServer(), (Entity) null);
 	}
 
 	public void teleportPlayerToLocation(ServerLevel serverWorld, Player player, ResourceKey<Level> destination, BlockPos destinationPos)
@@ -112,6 +112,11 @@ public class TileInversionPillar extends TileBase implements CommandSource
 	public void sendMessage(Component component, UUID senderUUID)
 	{
 		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void sendSystemMessage(Component p_230797_) {
 
 	}
 

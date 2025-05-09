@@ -3,7 +3,8 @@ package com.kushcola.bloodmagic.recipe.helper;
 import java.util.Collections;
 import java.util.List;
 
-import net.minecraft.tags.Tag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.tags.*;
 
 /**
  * Copied from Mekanism, including the author's rant about tags.
@@ -11,7 +12,7 @@ import net.minecraft.tags.Tag;
 public class TagResolverHelper
 {
 
-	public static <TYPE> List<TYPE> getRepresentations(Tag<TYPE> tag)
+	public static <TYPE> List<TYPE> getRepresentations(Tag tag)
 	{
 		try
 		{

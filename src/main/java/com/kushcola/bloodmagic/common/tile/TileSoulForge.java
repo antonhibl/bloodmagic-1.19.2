@@ -2,6 +2,7 @@ package com.kushcola.bloodmagic.common.tile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import com.kushcola.bloodmagic.api.compat.EnumDemonWillType;
 import com.kushcola.bloodmagic.api.compat.IDemonWill;
@@ -67,6 +68,11 @@ public class TileSoulForge extends TileInventory implements MenuProvider, IDemon
 
 		tag.putInt(Constants.NBT.SOUL_FORGE_BURN, burnTime);
 		return tag;
+	}
+
+	@Override
+	public void sendMessage(Component component, UUID senderUUID) {
+
 	}
 
 	public final ContainerData TileData = new ContainerData()

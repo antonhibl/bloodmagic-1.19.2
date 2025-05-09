@@ -10,7 +10,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.collect.Multimap;
 
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -87,7 +87,7 @@ public class LivingUtil
 			MinecraftForge.EVENT_BUS.post(levelUpEvent);
 			didUpgrade = true;
 
-			player.displayClientMessage(new TranslatableComponent("chat.bloodmagic.living_upgrade_level_increase", new TranslatableComponent(upgrade.getTranslationKey()), newLevel), true);
+			player.displayClientMessage(Component.translatable("chat.bloodmagic.living_upgrade_level_increase", Component.translatable(upgrade.getTranslationKey()), newLevel), true);
 		}
 
 //		System.out.println("Adding experience! Total experience is: " + currentExperience);
@@ -202,7 +202,7 @@ public class LivingUtil
 			MinecraftForge.EVENT_BUS.post(levelUpEvent);
 			didUpgrade = true;
 
-			player.displayClientMessage(new TranslatableComponent("chat.bloodmagic.living_upgrade_level_increase", new TranslatableComponent(upgrade.getTranslationKey()), newLevel), true);
+			player.displayClientMessage(Component.translatable("chat.bloodmagic.living_upgrade_level_increase", Component.translatable(upgrade.getTranslationKey()), newLevel), true);
 		}
 
 //			System.out.println("Adding experience! Total experience is: " + currentExperience);

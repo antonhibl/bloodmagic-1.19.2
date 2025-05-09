@@ -16,6 +16,7 @@ import com.kushcola.bloodmagic.gson.Serializers;
 import com.kushcola.bloodmagic.ritual.AreaDescriptor;
 import com.kushcola.bloodmagic.util.ChatUtil;
 import com.kushcola.bloodmagic.util.Constants;
+import net.minecraft.util.RandomSource;
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.collect.Lists;
@@ -26,7 +27,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
@@ -338,10 +338,10 @@ public class DungeonSynthesizer
 		ResourceLocation specialRoomType = getSpecialRoom(newRoomDepth, specialRoomTypes);
 		if (specialRoomType != null)
 		{
-			DungeonRoom randomRoom = getRandomRoom(specialRoomType, world.random);
+			DungeonRoom randomRoom = getRandomRoom(specialRoomType, (Random) world.random);
 			if (randomRoom != null)
 			{
-				if (checkRequiredRoom(world, controllerPos, specialRoomType, doorBlockOffsetPos, randomRoom, world.random, doorBlockPos, doorFacing, doorType, newRoomDepth, highestBranchRoomDepth))
+				if (checkRequiredRoom(world, controllerPos, specialRoomType, doorBlockOffsetPos, randomRoom, (Random) world.random, doorBlockPos, doorFacing, doorType, newRoomDepth, highestBranchRoomDepth))
 				{
 					removeSpecialRoom(specialRoomType);
 
@@ -350,7 +350,7 @@ public class DungeonSynthesizer
 						List<Component> toSend = Lists.newArrayList();
 //						if (!binding.getOwnerId().equals(player.getGameProfile().getId()))
 //							toSend.add(new TranslatableComponent(tooltipBase + "otherNetwork", binding.getOwnerName()));
-						toSend.add(new TranslatableComponent("tooltip.bloodmagic.specialspawn"));
+						toSend.add(Component.translatable("tooltip.bloodmagic.specialspawn"));
 						ChatUtil.sendNoSpam(player, toSend.toArray(new Component[toSend.size()]));
 					}
 
@@ -441,7 +441,7 @@ public class DungeonSynthesizer
 
 		Direction oppositeDoorFacing = doorFacing.getOpposite();
 
-		List<Rotation> rotationList = Rotation.getShuffled(rand);
+		List<Rotation> rotationList = Rotation.getShuffled((RandomSource) rand);
 		Rotation finalRotation = null;
 
 		// Got a random room, now test if any of the rotations have a valid door.
@@ -588,7 +588,7 @@ public class DungeonSynthesizer
 		settings.clearProcessors();
 		settings.addProcessor(new StoneToOreProcessor(room.oreDensity));
 
-		placedRoom.placeStructureAtPosition(world.random, settings, world, roomLocation);
+		placedRoom.placeStructureAtPosition((Random) world.random, settings, world, roomLocation);
 		for (String doorType : placedRoom.doorMap.keySet())
 		{
 			if (!availableDoorMasterMap.containsKey(doorType))
@@ -675,7 +675,7 @@ public class DungeonSynthesizer
 		if (displayDetailedInformation)
 			System.out.println("Room type: " + roomType);
 
-		List<Rotation> rotationList = Rotation.getShuffled(rand);
+		List<Rotation> rotationList = Rotation.getShuffled((RandomSource) rand);
 
 		// Got a random room, now test if any of the rotations have a valid door.
 		rotationCheck: for (Rotation initialRotation : rotationList)
